@@ -9,6 +9,9 @@ Fetches from Celestrak → falls back to n2yo.
 | PRSC-EO1 | 62726    |
 | PRSC-EO2 | 67748    |
 | PRSC-EO3 | 68835    |
+| PRSC-S1  | 65055    |
+| HS       | 66054    |
+| PRSS-1   | 43530    |
 
 ## Deploy to Vercel (3 steps)
 
