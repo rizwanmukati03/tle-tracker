@@ -4,7 +4,6 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 function formatEpoch(tleLines) {
-  // Parse epoch from TLE line 1: columns 19-32
   try {
     const line1 = tleLines?.line1 || "";
     const epochStr = line1.substring(18, 32).trim();
@@ -22,7 +21,12 @@ function formatEpoch(tleLines) {
   }
 }
 
-function SatelliteCard({ sat, index }) {
+const SAT_LABELS = {
+  62726: "EO1", 67748: "EO2", 68835: "EO3",
+  65055: "S1",  66054: "HS",  43530: "PRSS-1",
+};
+
+function SatelliteCard({ sat }) {
   const [copied, setCopied] = useState(false);
 
   const tleFull = sat.line1 && sat.line2
@@ -48,13 +52,13 @@ function SatelliteCard({ sat, index }) {
   };
 
   const epoch = formatEpoch(sat);
-  const labels = ["EO1", "EO2", "EO3"];
+  const label = SAT_LABELS[sat.norad] || sat.name;
 
   return (
     <div className={`${styles.card} ${sat.error ? styles.cardError : ""}`}>
       <div className={styles.cardHeader}>
         <div className={styles.satLabel}>
-          <span className={styles.badge}>{labels[index] || `SAT${index + 1}`}</span>
+          <span className={styles.badge}>{label}</span>
           <span className={styles.satName}>{sat.name || `NORAD ${sat.norad}`}</span>
         </div>
         <span className={styles.noradTag}>NORAD {sat.norad}</span>
@@ -136,7 +140,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "pakistan_satellites.tle";
+    a.download = "suparco_leo_assets.tle";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -144,9 +148,9 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>PRSC TLE Tracker</title>
+        <title>SUPARCO LEO Assets — TLE Tracker</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Live TLE data for Pakistan's PRSC satellite constellation" />
+        <meta name="description" content="Live TLE data for SUPARCO LEO satellite assets" />
       </Head>
 
       <div className={styles.root}>
@@ -157,9 +161,9 @@ export default function Home() {
               <div className={styles.orbitDot} />
             </div>
             <div>
-              <h1 className={styles.title}>PRSC Satellite TLE Tracker</h1>
+              <h1 className={styles.title}>SUPARCO LEO Assets</h1>
               <p className={styles.subtitle}>
-                Pakistan Remote Sensing Corporation · EO Constellation
+                TLE Tracker · Pakistan Space & Upper Atmosphere Research Commission
               </p>
             </div>
           </div>
@@ -195,15 +199,15 @@ export default function Home() {
           {!data && !loading && !error && (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🛰</div>
-              <p>Click <strong>Fetch Latest TLE</strong> to retrieve orbital elements for all three satellites.</p>
+              <p>Click <strong>Fetch Latest TLE</strong> to retrieve orbital elements for all satellites.</p>
             </div>
           )}
 
           {data?.satellites && (
             <>
               <div className={styles.grid}>
-                {data.satellites.map((sat, i) => (
-                  <SatelliteCard key={sat.norad} sat={sat} index={i} />
+                {data.satellites.map((sat) => (
+                  <SatelliteCard key={sat.norad} sat={sat} />
                 ))}
               </div>
 
@@ -217,7 +221,8 @@ export default function Home() {
         </main>
 
         <footer className={styles.footer}>
-          Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM
+          <div className={styles.footerCredit}>Developed by Rizwan Mukati</div>
+          <div>Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM</div>
         </footer>
       </div>
     </>
