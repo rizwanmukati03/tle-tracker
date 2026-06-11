@@ -393,3 +393,12 @@
   .controls { flex-direction: column; align-items: flex-start; }
   .fetchBtn { width: 100%; justify-content: center; }
 }
+
+/* ── Footer credit ── */
+.footerCredit {
+  font-size: 0.78rem;
+  color: #a8d8f0;
+  margin-bottom: 4px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
