@@ -41,3 +41,6 @@ npm run dev
 - TLE is cached in-memory for 6 hours per serverless instance
 - For persistent cache across instances, replace cache object in `pages/api/tle.js` with Vercel KV
 - Celestrak is tried first; n2yo is fallback
+
+## Important Links:
+[Celestrak Norad - 68835](https://celestrak.org/NORAD/elements/gp.php?CATNR=68835&FORMAT=TLE)
