@@ -3,6 +3,9 @@
 // Celestrak blocks raw server requests but accepts requests with proper User-Agent
 
 const SATELLITES = [
+  { name: "PRSC-S1",  norad: 65055 },
+  { name: "HS",       norad: 66054 },
+  { name: "PRSS-1",   norad: 43530 },
   { name: "PRSC-EO1", norad: 62726 },
   { name: "PRSC-EO2", norad: 67748 },
   { name: "PRSC-EO3", norad: 68835 },
