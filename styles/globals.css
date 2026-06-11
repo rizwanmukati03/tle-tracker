@@ -1,0 +1,27 @@
+/* styles/globals.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080c14;
+  --surface: #0d1422;
+  --surface2: #111927;
+  --border: #1e2d42;
+  --accent: #00d4ff;
+  --accent2: #0077ff;
+  --green: #00e676;
+  --red: #ff5252;
+  --text: #e8f0fe;
+  --muted: #7b8fa8;
+  --mono: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #080c14;
+  color: #e8f0fe;
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
