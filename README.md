@@ -43,5 +43,5 @@ npm run dev
 - Celestrak is tried first; n2yo is fallback
 
 ## Important Links:
-[Celestrak Norad - 68835](https://celestrak.org/NORAD/elements/gp.php?CATNR=68835&FORMAT=TLE)
-[Celestrak Satcat Search](https://celestrak.org/satcat/search.php)
+- [Celestrak Norad - 68835](https://celestrak.org/NORAD/elements/gp.php?CATNR=68835&FORMAT=TLE)
+- [Celestrak Satcat Search](https://celestrak.org/satcat/search.php)
