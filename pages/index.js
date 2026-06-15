@@ -1,5 +1,5 @@
 // pages/index.js
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
@@ -130,6 +130,11 @@ export default function Home() {
     }
   }, []);
 
+  // Auto-fetch on page load
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
   const handleDownloadAll = () => {
     if (!data?.satellites) return;
     const content = data.satellites
@@ -144,6 +149,8 @@ export default function Home() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const successCount = data?.satellites?.filter(s => s.line1).length || 0;
 
   return (
     <>
@@ -160,35 +167,45 @@ export default function Home() {
               <div className={styles.orbitRing} />
               <div className={styles.orbitDot} />
             </div>
-            <div>
+            <div className={styles.headerText}>
               <h1 className={styles.title}>SUPARCO LEO Assets</h1>
               <p className={styles.subtitle}>
                 TLE Tracker · Pakistan Space & Upper Atmosphere Research Commission
               </p>
             </div>
+            <div className={styles.headerCredit}>
+              <span className={styles.creditLabel}>Developed by</span>
+              <span className={styles.creditName}>Manager Rizwan Mukati</span>
+            </div>
           </div>
         </header>
 
-        <main className={styles.main}>
-          <div className={styles.controls}>
-            <button
-              className={styles.fetchBtn}
-              onClick={fetchAll}
-              disabled={loading}
-            >
-              {loading ? (
-                <><span className={styles.spinner} /> Fetching…</>
-              ) : (
-                "⟳ Fetch Latest TLE"
-              )}
-            </button>
-
-            {lastFetched && (
-              <span className={styles.timestamp}>
-                Last fetched: {lastFetched.toUTCString().replace("GMT", "UTC")}
-              </span>
-            )}
+        {/* Stats bar */}
+        <div className={styles.statsBar}>
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>6</span>
+            <span className={styles.statLabel}>Total Satellites</span>
           </div>
+          <div className={styles.statDivider} />
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>{loading ? "—" : successCount}</span>
+            <span className={styles.statLabel}>TLEs Loaded</span>
+          </div>
+          <div className={styles.statDivider} />
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>LEO</span>
+            <span className={styles.statLabel}>Orbit Class</span>
+          </div>
+          <div className={styles.statDivider} />
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>
+              {lastFetched ? lastFetched.toUTCString().replace("GMT","UTC").slice(0,16) : "—"}
+            </span>
+            <span className={styles.statLabel}>Last Updated</span>
+          </div>
+        </div>
+
+        <main className={styles.main}>
 
           {error && (
             <div className={styles.globalError}>
@@ -196,14 +213,17 @@ export default function Home() {
             </div>
           )}
 
-          {!data && !loading && !error && (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🛰</div>
-              <p>Click <strong>Fetch Latest TLE</strong> to retrieve orbital elements for all satellites.</p>
+          {loading && (
+            <div className={styles.loadingState}>
+              <div className={styles.loadingOrbit}>
+                <div className={styles.loadingRing} />
+                <div className={styles.loadingDot} />
+              </div>
+              <p>Fetching orbital elements from Celestrak…</p>
             </div>
           )}
 
-          {data?.satellites && (
+          {!loading && data?.satellites && (
             <>
               <div className={styles.grid}>
                 {data.satellites.map((sat) => (
@@ -211,9 +231,12 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className={styles.downloadAll}>
+              <div className={styles.bottomBar}>
+                <button className={styles.fetchBtn} onClick={fetchAll} disabled={loading}>
+                  ⟳ Refresh TLE Data
+                </button>
                 <button className={styles.btnDownloadAll} onClick={handleDownloadAll}>
-                  ↓ Download All Satellites (.tle)
+                  ↓ Download All (.tle)
                 </button>
               </div>
             </>
@@ -221,8 +244,7 @@ export default function Home() {
         </main>
 
         <footer className={styles.footer}>
-          <div className={styles.footerCredit}>Developed by Manager Rizwan Mukati</div>
-          <div>Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM</div>
+          Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM
         </footer>
       </div>
     </>
