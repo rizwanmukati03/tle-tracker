@@ -31,7 +31,7 @@ function formatCountdown(seconds) {
 
 const SAT_LABELS = {
   62726: "EO1", 67748: "EO2", 68835: "EO3",
-  65055: "S1",  66054: "HS",  43530: "PRSS-1",
+  65055: "S1",  66054: "HS",  43530: "PRSS-1", 43529: "PAKTES",
 };
 
 function SatelliteCard({ sat }) {
@@ -227,7 +227,7 @@ export default function Home() {
         {/* Stats bar */}
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
-            <span className={styles.statValue}>6</span>
+            <span className={styles.statValue}>7</span>
             <span className={styles.statLabel}>Total Satellites</span>
           </div>
           <div className={styles.statDivider} />
