@@ -10,7 +10,7 @@ const SATELLITES = [
 ];
 
 const cache = {};
-const CACHE_TTL_MS = 60 * 60 * 1000;        // 1 hour server cache
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;      // 6 hour server cache
 const FORCE_COOLDOWN_MS = 10 * 60 * 1000;   // 10 min cooldown on force refresh
 
 let lastForceFetch = 0;
