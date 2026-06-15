@@ -221,7 +221,7 @@ export default function Home() {
         </main>
 
         <footer className={styles.footer}>
-          <div className={styles.footerCredit}>Developed by Rizwan </div>
+          <div className={styles.footerCredit}>Developed by Manager Rizwan Mukati</div>
           <div>Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM</div>
         </footer>
       </div>
