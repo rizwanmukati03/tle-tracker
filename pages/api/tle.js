@@ -6,6 +6,7 @@ const SATELLITES = [
   { name: "PRSC-S1",  norad: 65055 },
   { name: "HS",       norad: 66054 },
   { name: "PRSS-1",   norad: 43530 },
+  { name: "PAKTES-1A", norad: 43529 },
 ];
 
 const cache = {};
@@ -110,7 +111,7 @@ export default async function handler(req, res) {
     const results = await Promise.allSettled(
       SATELLITES.map(async (sat) => {
         const tle = await fetchTLE(sat.norad, force);
-        return { ...sat, ...tle };
+        return { ...tle, ...sat };
       })
     );
 
