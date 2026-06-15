@@ -217,8 +217,9 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.headerCredit}>
-              <span className={styles.creditLabel}>Developed by</span>
+              <span className={styles.creditLabel}>Initiated & Developed by</span>
               <span className={styles.creditName}>Manager Rizwan Mukati</span>
+              <span className={styles.creditAdvised}>Advised by Manager Saad Sardar</span>
             </div>
           </div>
         </header>
