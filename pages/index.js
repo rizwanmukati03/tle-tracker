@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
-const AUTO_REFRESH_MS = 60 * 60 * 1000; // 1 hour
+const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 function formatEpoch(tleLines) {
   try {
