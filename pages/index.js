@@ -1,7 +1,9 @@
 // pages/index.js
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
+
+const AUTO_REFRESH_MS = 60 * 60 * 1000; // 1 hour
 
 function formatEpoch(tleLines) {
   try {
@@ -19,6 +21,12 @@ function formatEpoch(tleLines) {
   } catch {
     return null;
   }
+}
+
+function formatCountdown(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s.toString().padStart(2, "0")}s`;
 }
 
 const SAT_LABELS = {
@@ -55,7 +63,7 @@ function SatelliteCard({ sat }) {
   const label = SAT_LABELS[sat.norad] || sat.name;
 
   return (
-    <div className={`${styles.card} ${sat.error ? styles.cardError : ""}`}>
+    <div className={`${styles.card} ${sat.error ? styles.cardError : ""} ${sat.stale ? styles.cardStale : ""}`}>
       <div className={styles.cardHeader}>
         <div className={styles.satLabel}>
           <span className={styles.badge}>{label}</span>
@@ -91,7 +99,8 @@ function SatelliteCard({ sat }) {
 
           <div className={styles.metaRow}>
             <span className={styles.sourceTag}>via {sat.source}</span>
-            {sat.fromCache && <span className={styles.cacheTag}>cached</span>}
+            {sat.fromCache && !sat.stale && <span className={styles.cacheTag}>cached</span>}
+            {sat.stale && <span className={styles.staleTag}>stale — fetch failed</span>}
           </div>
 
           <div className={styles.actions}>
@@ -113,16 +122,31 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastFetched, setLastFetched] = useState(null);
+  const [countdown, setCountdown] = useState(AUTO_REFRESH_MS / 1000);
+  const [cooldownMsg, setCooldownMsg] = useState(null);
+  const autoRefreshTimer = useRef(null);
+  const countdownTimer = useRef(null);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (force = false) => {
     setLoading(true);
     setError(null);
+    setCooldownMsg(null);
     try {
-      const res = await fetch("/api/tle");
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const url = force ? "/api/tle?force=true" : "/api/tle";
+      const res = await fetch(url);
       const json = await res.json();
+
+      if (res.status === 429) {
+        setCooldownMsg(json.error);
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
       setData(json);
       setLastFetched(new Date());
+      // Reset countdown
+      setCountdown(AUTO_REFRESH_MS / 1000);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -135,11 +159,30 @@ export default function Home() {
     fetchAll();
   }, [fetchAll]);
 
+  // Auto-refresh every 1 hour
+  useEffect(() => {
+    autoRefreshTimer.current = setInterval(() => {
+      fetchAll(false);
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(autoRefreshTimer.current);
+  }, [fetchAll]);
+
+  // Countdown timer — ticks every second
+  useEffect(() => {
+    countdownTimer.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) return AUTO_REFRESH_MS / 1000;
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(countdownTimer.current);
+  }, []);
+
   const handleDownloadAll = () => {
     if (!data?.satellites) return;
     const content = data.satellites
-      .filter((s) => s.line1 && s.line2)
-      .map((s) => `${s.name || `NORAD-${s.norad}`}\n${s.line1}\n${s.line2}`)
+      .filter(s => s.line1 && s.line2)
+      .map(s => `${s.name || `NORAD-${s.norad}`}\n${s.line1}\n${s.line2}`)
       .join("\n");
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -199,17 +242,29 @@ export default function Home() {
           <div className={styles.statDivider} />
           <div className={styles.statItem}>
             <span className={styles.statValue}>
-              {lastFetched ? lastFetched.toUTCString().replace("GMT","UTC").slice(0,16) : "—"}
+              {lastFetched ? lastFetched.toUTCString().replace("GMT", "UTC").slice(0, 16) : "—"}
             </span>
-            <span className={styles.statLabel}>Last Updated</span>
+            <span className={styles.statLabel}>Last Updated (UTC)</span>
+          </div>
+          <div className={styles.statDivider} />
+          <div className={styles.statItem}>
+            <span className={`${styles.statValue} ${styles.countdown}`}>
+              {loading ? "Fetching…" : formatCountdown(countdown)}
+            </span>
+            <span className={styles.statLabel}>Next Auto-Refresh</span>
           </div>
         </div>
 
         <main className={styles.main}>
-
           {error && (
             <div className={styles.globalError}>
               <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {cooldownMsg && (
+            <div className={styles.cooldownMsg}>
+              ⏱ {cooldownMsg}
             </div>
           )}
 
@@ -226,13 +281,17 @@ export default function Home() {
           {!loading && data?.satellites && (
             <>
               <div className={styles.grid}>
-                {data.satellites.map((sat) => (
+                {data.satellites.map(sat => (
                   <SatelliteCard key={sat.norad} sat={sat} />
                 ))}
               </div>
 
               <div className={styles.bottomBar}>
-                <button className={styles.fetchBtn} onClick={fetchAll} disabled={loading}>
+                <button
+                  className={styles.fetchBtn}
+                  onClick={() => fetchAll(true)}
+                  disabled={loading}
+                >
                   ⟳ Refresh TLE Data
                 </button>
                 <button className={styles.btnDownloadAll} onClick={handleDownloadAll}>
@@ -244,7 +303,7 @@ export default function Home() {
         </main>
 
         <footer className={styles.footer}>
-          Data sourced from Celestrak · Space-Track · n2yo &nbsp;·&nbsp; TLE format per USSPACECOM
+          Auto-refreshes every hour · Data sourced from Celestrak · n2yo · TLE format per USSPACECOM
         </footer>
       </div>
     </>
