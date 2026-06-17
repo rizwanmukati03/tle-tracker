@@ -188,7 +188,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "suparco_leo_assets.tle";
+    a.download = "leo_asset_tracker.tle";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -198,9 +198,9 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>SUPARCO LEO Assets — TLE Tracker</title>
+        <title>LEO Asset Tracker</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Live TLE data for SUPARCO LEO satellite assets" />
+        <meta name="description" content="Live TLE data and orbital tracking for LEO satellite assets" />
       </Head>
 
       <div className={styles.root}>
@@ -211,9 +211,9 @@ export default function Home() {
               <div className={styles.orbitDot} />
             </div>
             <div className={styles.headerText}>
-              <h1 className={styles.title}>SUPARCO LEO Assets</h1>
+              <h1 className={styles.title}>LEO Asset Tracker</h1>
               <p className={styles.subtitle}>
-                TLE Tracker · Pakistan Space & Upper Atmosphere Research Commission
+                Live TLE Data · Orbital Elements Tracker
               </p>
             </div>
             <div className={styles.headerCredit}>
