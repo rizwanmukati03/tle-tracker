@@ -24,8 +24,12 @@ function formatEpoch(tleLines) {
 }
 
 function formatCountdown(seconds) {
-  const m = Math.floor(seconds / 60);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
+  if (h > 0) {
+    return `${h}h ${m.toString().padStart(2, "0")}m`;
+  }
   return `${m}m ${s.toString().padStart(2, "0")}s`;
 }
 
@@ -243,9 +247,11 @@ export default function Home() {
           <div className={styles.statDivider} />
           <div className={styles.statItem}>
             <span className={styles.statValue}>
-              {lastFetched ? lastFetched.toUTCString().replace("GMT", "UTC").slice(0, 16) : "—"}
+              {lastFetched
+                ? lastFetched.toUTCString().replace("GMT", "UTC").slice(0, 22)
+                : "—"}
             </span>
-            <span className={styles.statLabel}>Last Updated (UTC)</span>
+            <span className={styles.statLabel}>Data Fetched At (UTC)</span>
           </div>
           <div className={styles.statDivider} />
           <div className={styles.statItem}>
