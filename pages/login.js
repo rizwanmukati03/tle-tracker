@@ -44,6 +44,11 @@ export default function Login() {
         setLoading(false);
         return;
       }
+      if (rememberMe) {
+  window.localStorage.setItem("leo_remembered_username", username);
+} else {
+  window.localStorage.removeItem("leo_remembered_username");
+}
       const dest =
         typeof router.query.from === "string" && router.query.from.startsWith("/")
           ? router.query.from
