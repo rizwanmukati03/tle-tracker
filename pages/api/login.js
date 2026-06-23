@@ -4,12 +4,9 @@ import { createSessionToken, COOKIE_NAME } from "../../lib/auth";
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-const SHORT_SESSION_SECONDS = 60 * 60 * 12; // 12 hours
+const SHORT_SESSION_SECONDS = 60 * 60 * 12; // 12 hours — backstop expiry even for session cookies
 const REMEMBER_ME_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
-// In-memory, per-instance rate limiting. Resets on cold start, not shared
-// across concurrent instances — a real deterrent against casual guessing,
-// not against a distributed brute force.
 const attempts = new Map();
 
 function getClientIp(req) {
@@ -65,16 +62,21 @@ export default async function handler(req, res) {
 
   attempts.delete(ip);
 
-const tokenMaxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
-const token = await createSessionToken(secret, tokenMaxAge);
+  // The signed token itself always carries a real expiry (used by middleware
+  // to reject it once expired), regardless of cookie type below.
+  const tokenMaxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
+  const token = await createSessionToken(secret, tokenMaxAge);
 
-const cookieParts = [`${COOKIE_NAME}=${token}`, "Path=/", "HttpOnly", "Secure", "SameSite=Strict"];
-if (rememberMe) {
-  // Only set Max-Age when "remember me" is checked — omitting it makes
-  // this a true session cookie that's cleared when the browser fully closes.
-  // The signed token itself still expires after 12h either way, as a backstop.
-  cookieParts.push(`Max-Age=${tokenMaxAge}`);
-}
-res.setHeader("Set-Cookie", cookieParts.join("; "));
-return res.status(200).json({ ok: true });
+  const cookieParts = [`${COOKIE_NAME}=${token}`, "Path=/", "HttpOnly", "Secure", "SameSite=Strict"];
+  if (rememberMe) {
+    // Persistent cookie: survives closing the browser, for up to 30 days.
+    cookieParts.push(`Max-Age=${tokenMaxAge}`);
+  }
+  // If rememberMe is false, no Max-Age is set at all — this makes it a true
+  // session cookie, which most browsers clear when the browser fully closes
+  // (not just when one tab closes). The 12-hour token expiry is the backstop
+  // if someone leaves the browser open without closing it.
+
+  res.setHeader("Set-Cookie", cookieParts.join("; "));
+  return res.status(200).json({ ok: true });
 }
