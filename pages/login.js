@@ -14,7 +14,13 @@ export default function Login() {
   const [shake, setShake] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+  const saved = window.localStorage.getItem("leo_remembered_username");
+  if (saved) {
+    setUsername(saved);
+    setRememberMe(true);
+  }
+}, []);
 
   const triggerShake = (msg) => {
     setError(msg);
