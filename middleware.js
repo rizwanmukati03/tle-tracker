@@ -9,19 +9,8 @@ export const config = {
 export async function middleware(req) {
   const secret = process.env.SESSION_SECRET;
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  const valid = secret ? await verifySessionToken(secret, token) : false;
 
-  // TEMPORARY DEBUG LOGGING — remove once the issue is found
-  console.log("[middleware-debug]", {
-    path: req.nextUrl.pathname,
-    hasSecret: !!secret,
-    secretLength: secret ? secret.length : 0,
-    hasToken: !!token,
-    tokenPreview: token ? token.slice(0, 16) : null,
-    valid,
-  });
-
-  if (valid) {
+  if (secret && (await verifySessionToken(secret, token))) {
     return NextResponse.next();
   }
 
