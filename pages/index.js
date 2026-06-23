@@ -223,27 +223,21 @@ export default function Home() {
             <div className={styles.headerCredit}>
   <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
   <span className={styles.creditName}>Manager Rizwan Mukati</span>
-  <button
-    onClick={() => {
-      fetch("/api/logout", { method: "POST" }).then(() => {
-        window.location.href = "/login";
-      });
-    }}
-    style={{
-      marginTop: 8,
-      background: "none",
-      border: "1px solid #1a2740",
-      color: "#5a7a9a",
-      fontSize: "0.65rem",
-      padding: "3px 10px",
-      borderRadius: 5,
-      cursor: "pointer",
-      letterSpacing: "0.06em",
-      textTransform: "uppercase",
-    }}
-  >
-    Sign Out
-  </button>
+<button
+  className={styles.signOutBtn}
+  onClick={() => {
+    fetch("/api/logout", { method: "POST" }).then(() => {
+      window.location.href = "/login";
+    });
+  }}
+>
+  <svg className={styles.signOutIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M16 17l5-5-5-5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+  Sign Out
+</button>
 </div>
           </div>
         </header>
