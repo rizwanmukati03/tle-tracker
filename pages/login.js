@@ -8,6 +8,7 @@ export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
@@ -29,7 +30,7 @@ export default function Login() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, rememberMe }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -97,6 +98,17 @@ export default function Login() {
               />
             </div>
 
+            <label className={styles.rememberRow} htmlFor="rememberMe">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                className={styles.checkbox}
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <span>Remember me for 30 days</span>
+            </label>
+
             {error && <div className={styles.error}>⚠ {error}</div>}
 
             <button className={styles.btn} type="submit" disabled={loading}>
@@ -107,10 +119,11 @@ export default function Login() {
             </button>
           </form>
 
-          <p className={styles.footer}>Session expires after 12 hours of issuance</p>
+          <p className={styles.footer}>
+            {rememberMe ? "Session stays active for 30 days" : "Session expires after 12 hours"}
+          </p>
         </div>
       </div>
     </>
   );
 }
-
