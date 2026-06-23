@@ -66,10 +66,10 @@ export default async function handler(req, res) {
   attempts.delete(ip);
 
   const maxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
-  const token = await createSessionToken(secret, maxAge);
-  res.setHeader(
-    "Set-Cookie",
-    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`
-  );
-  return res.status(200).json({ ok: true });
+const token = await createSessionToken(secret, maxAge);
+res.setHeader(
+  "Set-Cookie",
+  `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`
+);
+return res.status(200).json({ ok: true });
 }
