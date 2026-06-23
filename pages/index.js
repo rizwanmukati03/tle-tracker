@@ -221,10 +221,30 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.headerCredit}>
-              <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
-              <span className={styles.creditName}>Manager Rizwan Mukati</span>
-
-            </div>
+  <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
+  <span className={styles.creditName}>Manager Rizwan Mukati</span>
+  <button
+    onClick={() => {
+      fetch("/api/logout", { method: "POST" }).then(() => {
+        window.location.href = "/login";
+      });
+    }}
+    style={{
+      marginTop: 8,
+      background: "none",
+      border: "1px solid #1a2740",
+      color: "#5a7a9a",
+      fontSize: "0.65rem",
+      padding: "3px 10px",
+      borderRadius: 5,
+      cursor: "pointer",
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+    }}
+  >
+    Sign Out
+  </button>
+</div>
           </div>
         </header>
 
