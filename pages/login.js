@@ -58,11 +58,11 @@ export default function Login() {
         window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
       }
 
-      const dest =
-        typeof router.query.from === "string" && router.query.from.startsWith("/")
-          ? router.query.from
-          : "/";
-      router.push(dest);
+const dest =
+  typeof router.query.from === "string" && router.query.from.startsWith("/")
+    ? router.query.from
+    : "/";
+window.location.href = dest;
     } catch {
       triggerShake("Network error. Please try again.");
       setLoading(false);
