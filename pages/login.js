@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import styles from "../styles/Login.module.css";
 
+const REMEMBERED_USERNAME_KEY = "leo_remembered_username";
+
 export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -14,13 +16,17 @@ export default function Login() {
   const [shake, setShake] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // On page load: if a username was remembered from a previous "Remember me"
+  // login, pre-fill it and re-check the box. Doesn't touch the password —
+  // that's left to the browser's own password manager.
   useEffect(() => {
-  const saved = window.localStorage.getItem("leo_remembered_username");
-  if (saved) {
-    setUsername(saved);
-    setRememberMe(true);
-  }
-}, []);
+    setMounted(true);
+    const saved = window.localStorage.getItem(REMEMBERED_USERNAME_KEY);
+    if (saved) {
+      setUsername(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const triggerShake = (msg) => {
     setError(msg);
@@ -44,11 +50,14 @@ export default function Login() {
         setLoading(false);
         return;
       }
+
+      // Login succeeded — remember (or forget) the username based on the checkbox.
       if (rememberMe) {
-  window.localStorage.setItem("leo_remembered_username", username);
-} else {
-  window.localStorage.removeItem("leo_remembered_username");
-}
+        window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username);
+      } else {
+        window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
+      }
+
       const dest =
         typeof router.query.from === "string" && router.query.from.startsWith("/")
           ? router.query.from
@@ -131,7 +140,7 @@ export default function Login() {
           </form>
 
           <p className={styles.footer}>
-            {rememberMe ? "Session stays active for 30 days" : "Session expires after 12 hours"}
+            {rememberMe ? "Session stays active for 30 days" : "Session ends when you close your browser"}
           </p>
         </div>
       </div>
