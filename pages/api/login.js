@@ -4,13 +4,12 @@ import { createSessionToken, COOKIE_NAME } from "../../lib/auth";
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12; // 12 hours
+const SHORT_SESSION_SECONDS = 60 * 60 * 12; // 12 hours
+const REMEMBER_ME_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
-// NOTE: this is an in-memory Map, scoped to a single serverless instance.
-// It resets on cold start and isn't shared across concurrent instances.
-// It will slow down a casual brute-force attempt from one IP, but it is
-// NOT a substitute for a real rate limiter (e.g. Vercel KV / Upstash)
-// against a distributed attack. Flagging this rather than overselling it.
+// In-memory, per-instance rate limiting. Resets on cold start, not shared
+// across concurrent instances — a real deterrent against casual guessing,
+// not against a distributed brute force.
 const attempts = new Map();
 
 function getClientIp(req) {
@@ -19,14 +18,10 @@ function getClientIp(req) {
   return req.socket?.remoteAddress || "unknown";
 }
 
-// Timing-safe string comparison so failed-login response time can't be used
-// to infer how many characters matched.
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a ?? ""));
   const bufB = Buffer.from(String(b ?? ""));
   if (bufA.length !== bufB.length) {
-    // Still run a comparison of equal length so a length mismatch doesn't
-    // return measurably faster than a length match.
     crypto.timingSafeEqual(bufA, bufA);
     return false;
   }
@@ -41,12 +36,10 @@ export default async function handler(req, res) {
   const ip = getClientIp(req);
   const now = Date.now();
   let record = attempts.get(ip);
-
   if (!record || now - record.firstAttempt > WINDOW_MS) {
     record = { count: 0, firstAttempt: now };
     attempts.set(ip, record);
   }
-
   if (record.count >= MAX_ATTEMPTS) {
     const waitMin = Math.ceil((WINDOW_MS - (now - record.firstAttempt)) / 60000);
     return res.status(429).json({ error: `Too many attempts. Try again in ${waitMin} minute(s).` });
@@ -61,7 +54,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server misconfigured" });
   }
 
-  const { username, password } = req.body || {};
+  const { username, password, rememberMe } = req.body || {};
   const usernameOk = safeCompare(username, validUser);
   const passwordOk = safeCompare(password, validPass);
 
@@ -72,10 +65,11 @@ export default async function handler(req, res) {
 
   attempts.delete(ip);
 
-  const token = await createSessionToken(secret, SESSION_MAX_AGE_SECONDS);
+  const maxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
+  const token = await createSessionToken(secret, maxAge);
   res.setHeader(
     "Set-Cookie",
-    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_MAX_AGE_SECONDS}`
+    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`
   );
   return res.status(200).json({ ok: true });
 }
