@@ -509,34 +509,3 @@
   margin-top: 4px;
   letter-spacing: 0.02em;
 }
-.signOutBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0, 212, 255, 0.06);
-  border: 1px solid rgba(0, 212, 255, 0.25);
-  color: #00d4ff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.1s;
-  white-space: nowrap;
-}
-
-.signOutBtn:hover {
-  background: rgba(0, 212, 255, 0.14);
-  border-color: rgba(0, 212, 255, 0.5);
-}
-
-.signOutBtn:active {
-  transform: scale(0.97);
-}
-
-.signOutIcon {
-  width: 13px;
-  height: 13px;
-}
