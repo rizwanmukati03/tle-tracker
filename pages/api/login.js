@@ -65,11 +65,16 @@ export default async function handler(req, res) {
 
   attempts.delete(ip);
 
-  const maxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
-const token = await createSessionToken(secret, maxAge);
-res.setHeader(
-  "Set-Cookie",
-  `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`
-);
+const tokenMaxAge = rememberMe ? REMEMBER_ME_SECONDS : SHORT_SESSION_SECONDS;
+const token = await createSessionToken(secret, tokenMaxAge);
+
+const cookieParts = [`${COOKIE_NAME}=${token}`, "Path=/", "HttpOnly", "Secure", "SameSite=Strict"];
+if (rememberMe) {
+  // Only set Max-Age when "remember me" is checked — omitting it makes
+  // this a true session cookie that's cleared when the browser fully closes.
+  // The signed token itself still expires after 12h either way, as a backstop.
+  cookieParts.push(`Max-Age=${tokenMaxAge}`);
+}
+res.setHeader("Set-Cookie", cookieParts.join("; "));
 return res.status(200).json({ ok: true });
 }
