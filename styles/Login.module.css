@@ -248,3 +248,21 @@
   .card { padding: 32px 22px 24px; }
 }
 
+/* ── Remember me ── */
+.rememberRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #9fb3c8;
+  cursor: pointer;
+  user-select: none;
+  margin-top: -2px;
+}
+
+.checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: #00aaff;
+  cursor: pointer;
+}
