@@ -21,3 +21,4 @@ export async function middleware(req) {
   const loginUrl = new URL("/login", req.url);
   loginUrl.searchParams.set("from", req.nextUrl.pathname);
   return NextResponse.redirect(loginUrl);
+}
