@@ -4,6 +4,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
+const COLLISION_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 function formatEpoch(tleLines) {
   try {
@@ -37,6 +38,108 @@ const SAT_LABELS = {
   62726: "EO1", 67748: "EO2", 68835: "EO3",
   65055: "S1",  66054: "HS",  43530: "PRSS-1", 43529: "PAKTES",
 };
+
+const RISK_LABELS = { critical: "Critical", warning: "Warning", watch: "Watch" };
+
+function ProximityGauge({ minRangeKm, risk }) {
+  const pct = Math.min(Math.max(minRangeKm, 0) / 5, 1) * 100;
+  return (
+    <div className={styles.gaugeWrap}>
+      <div className={styles.gaugeTrack}>
+        <div className={styles.gaugeZoneCritical} />
+        <div className={styles.gaugeZoneWarning} />
+        <div className={styles.gaugeZoneWatch} />
+        <div
+          className={`${styles.gaugeMarker} ${styles["gaugeMarker_" + risk]}`}
+          style={{ left: `${pct}%` }}
+        />
+      </div>
+      <div className={styles.gaugeScale}>
+        <span>0</span><span>1</span><span>3</span><span>5 km</span>
+      </div>
+    </div>
+  );
+}
+
+function ConjunctionRow({ c }) {
+  const badgeCls = {
+    critical: styles.riskCritical,
+    warning: styles.riskWarning,
+    watch: styles.riskWatch,
+  }[c.risk];
+  const distCls = {
+    critical: styles.distCritical,
+    warning: styles.distWarning,
+    watch: styles.distWatch,
+  }[c.risk];
+
+  return (
+    <div className={`${styles.conjunctionCard} ${styles["conj_" + c.risk]}`}>
+      <span className={badgeCls}>{RISK_LABELS[c.risk]}</span>
+
+      <div className={styles.conjunctionFields}>
+        <div>
+          <div className={styles.fieldLabel}>Miss distance</div>
+          <div className={`${styles.fieldValueLg} ${distCls}`}>{c.minRangeKm.toFixed(2)} km</div>
+        </div>
+        <div>
+          <div className={styles.fieldLabel}>TCA (closest approach)</div>
+          <div className={styles.fieldValueMd}>{c.tca} UTC</div>
+        </div>
+      </div>
+
+      <ProximityGauge minRangeKm={c.minRangeKm} risk={c.risk} />
+
+      <div className={styles.conjunctionTarget}>
+        vs {c.otherName}{" "}
+        {c.otherStatus && <span className={styles.statusTag}>[{c.otherStatus}]</span>} · NORAD {c.otherNorad}
+      </div>
+
+      <div className={styles.conjunctionMeta}>
+        <span>Relative speed: {Number.isFinite(c.relSpeedKmS) ? c.relSpeedKmS.toFixed(2) : "—"} km/s</span>
+        <span>Max prob: {c.maxProb != null ? c.maxProb.toExponential(2) : "n/a"}</span>
+        <span>Data age: {Number.isFinite(c.dse) ? c.dse.toFixed(1) : "—"} days</span>
+      </div>
+    </div>
+  );
+}
+
+function CollisionSection({ norad, data }) {
+  const reportUrl = `https://celestrak.org/SOCRATES/table-socrates.php?CATNR=${norad}&ORDER=MINRANGE&MAX=10`;
+  const conjunctions = data?.conjunctions || [];
+  const sorted = [...conjunctions].sort((a, b) => a.minRangeKm - b.minRangeKm);
+  const top = sorted.slice(0, 2);
+  const extraCount = sorted.length - top.length;
+
+  return (
+    <div className={styles.collisionSection}>
+      <div className={styles.collisionHeader}>
+        <span className={styles.collisionLabel}>◎ Collision risk</span>
+        {!data?.error && (
+          <span className={styles.collisionCount}>
+            · {conjunctions.length} conjunction{conjunctions.length === 1 ? "" : "s"} in next 7 days
+          </span>
+        )}
+        {data?.stale && <span className={styles.staleTagSmall}>stale</span>}
+      </div>
+
+      {data?.error && <div className={styles.collisionError}>Unable to fetch: {data.error}</div>}
+      {!data?.error && conjunctions.length === 0 && (
+        <div className={styles.collisionNone}>No conjunctions within 5 km threshold</div>
+      )}
+
+      {top.map((c, i) => <ConjunctionRow key={i} c={c} />)}
+
+      {extraCount > 0 && (
+        <div className={styles.moreNote}>+ {extraCount} more conjunction{extraCount === 1 ? "" : "s"} in full report</div>
+      )}
+
+      <a href={reportUrl} target="_blank" rel="noreferrer" className={styles.viewReportLink}>
+        View full SOCRATES report ↗
+      </a>
+    </div>
+  );
+}
 
 function SatelliteCard({ sat }) {
   const [copied, setCopied] = useState(false);
@@ -117,6 +220,8 @@ function SatelliteCard({ sat }) {
           </div>
         </>
       )}
+
+      {sat.collisions && <CollisionSection norad={sat.norad} data={sat.collisions} />}
     </div>
   );
 }
@@ -128,8 +233,10 @@ export default function Home() {
   const [lastFetched, setLastFetched] = useState(null);
   const [countdown, setCountdown] = useState(AUTO_REFRESH_MS / 1000);
   const [cooldownMsg, setCooldownMsg] = useState(null);
+  const [collisionData, setCollisionData] = useState(null);
   const autoRefreshTimer = useRef(null);
   const countdownTimer = useRef(null);
+  const collisionTimer = useRef(null);
 
   const fetchAll = useCallback(async (force = false) => {
     setLoading(true);
@@ -149,7 +256,6 @@ export default function Home() {
       if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
       setData(json);
       setLastFetched(new Date());
-      // Reset countdown
       setCountdown(AUTO_REFRESH_MS / 1000);
     } catch (e) {
       setError(e.message);
@@ -158,12 +264,22 @@ export default function Home() {
     }
   }, []);
 
-  // Auto-fetch on page load
+  const fetchCollisions = useCallback(async (force = false) => {
+    try {
+      const url = force ? "/api/collisions?force=true" : "/api/collisions";
+      const res = await fetch(url);
+      const json = await res.json();
+      if (res.ok) setCollisionData(json);
+    } catch {
+      // fail silently — TLE data still works without this
+    }
+  }, []);
+
   useEffect(() => {
     fetchAll();
-  }, [fetchAll]);
+    fetchCollisions();
+  }, [fetchAll, fetchCollisions]);
 
-  // Auto-refresh every 1 hour
   useEffect(() => {
     autoRefreshTimer.current = setInterval(() => {
       fetchAll(false);
@@ -171,7 +287,13 @@ export default function Home() {
     return () => clearInterval(autoRefreshTimer.current);
   }, [fetchAll]);
 
-  // Countdown timer — ticks every second
+  useEffect(() => {
+    collisionTimer.current = setInterval(() => {
+      fetchCollisions(false);
+    }, COLLISION_REFRESH_MS);
+    return () => clearInterval(collisionTimer.current);
+  }, [fetchCollisions]);
+
   useEffect(() => {
     countdownTimer.current = setInterval(() => {
       setCountdown(prev => {
@@ -199,6 +321,10 @@ export default function Home() {
 
   const successCount = data?.satellites?.filter(s => s.line1).length || 0;
 
+  const criticalSats = collisionData?.satellites?.filter(s =>
+    s.conjunctions?.some(c => c.risk === "critical")
+  ) || [];
+
   return (
     <>
       <Head>
@@ -223,12 +349,10 @@ export default function Home() {
             <div className={styles.headerCredit}>
               <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
               <span className={styles.creditName}>Manager Rizwan Mukati</span>
-
             </div>
           </div>
         </header>
 
-        {/* Stats bar */}
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
             <span className={styles.statValue}>7</span>
@@ -262,6 +386,14 @@ export default function Home() {
           </div>
         </div>
 
+        {criticalSats.length > 0 && (
+          <div className={styles.criticalBanner}>
+            <span className={styles.criticalBannerIcon}>⚠</span>
+            {criticalSats.length} satellite{criticalSats.length > 1 ? "s" : ""} at critical collision risk —{" "}
+            {criticalSats.map(s => s.name).join(", ")}
+          </div>
+        )}
+
         <main className={styles.main}>
           {error && (
             <div className={styles.globalError}>
@@ -288,9 +420,15 @@ export default function Home() {
           {!loading && data?.satellites && (
             <>
               <div className={styles.grid}>
-                {data.satellites.map(sat => (
-                  <SatelliteCard key={sat.norad} sat={sat} />
-                ))}
+                {data.satellites.map(sat => {
+                  const collisionMatch = collisionData?.satellites?.find(c => c.norad === sat.norad);
+                  return (
+                    <SatelliteCard
+                      key={sat.norad}
+                      sat={{ ...sat, collisions: collisionMatch }}
+                    />
+                  );
+                })}
               </div>
 
               <div className={styles.bottomBar}>
@@ -310,7 +448,7 @@ export default function Home() {
         </main>
 
         <footer className={styles.footer}>
-          Auto-refreshes every hour · Data sourced from Celestrak · n2yo · TLE format per USSPACECOM
+          Auto-refreshes every hour · Data sourced from Celestrak · n2yo · SOCRATES · TLE format per USSPACECOM
         </footer>
       </div>
     </>
