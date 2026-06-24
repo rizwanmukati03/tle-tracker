@@ -49,7 +49,7 @@ npm run dev
 - [Celestrak Norad - 68835](https://celestrak.org/NORAD/elements/gp.php?CATNR=68835&FORMAT=TLE)
 - [Celestrak Satcat Search](https://celestrak.org/satcat/search.php)
 - [n2yo - 68835](https://www.n2yo.com/satellite/?s=68835)
-- [celestrak TLE] (https://celestrak.org/norad/elements/table.php?GROUP=resource&FORMAT=tle)
+- [celestrak TLE](https://celestrak.org/norad/elements/table.php?GROUP=resource&FORMAT=tle)
 - [celestrak - collision](https://celestrak.org/SOCRATES/)
 - [celestrak - collision](https://celestrak.org/SOCRATES/table-socrates.php?CATNR=68835&ORDER=MINRANGE&MAX=10)
 - [celestrak - collision](https://celestrak.org/SOCRATES/table-socrates.php?CATNR=62726,&ORDER=TCA&MAX=25)
