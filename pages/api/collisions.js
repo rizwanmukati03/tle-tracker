@@ -10,8 +10,8 @@ const SATELLITES = [
 ];
 
 const cache = {};
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;   // 6 hours
-const FORCE_COOLDOWN_MS = 10 * 60 * 1000;  // 10 min
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const FORCE_COOLDOWN_MS = 10 * 60 * 1000;
 let lastForceFetch = 0;
 
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
@@ -27,25 +27,17 @@ async function debugFetch(norad, res) {
     signal: AbortSignal.timeout(10000),
   });
   const text = await r.text();
-
   const tableIdx = text.indexOf("<table");
-  const ajaxIdx = text.search(/ajax\s*:/i);
   const trCount = (text.match(/<tr/gi) || []).length;
-  const tdCount = (text.match(/<td/gi) || []).length;
   const recordsFoundMatch = text.match(/(\d+)\s+records found/i);
-
   const summary =
     `TOTAL HTML LENGTH: ${text.length}\n` +
     `<table FOUND AT INDEX: ${tableIdx}\n` +
-    `'ajax:' FOUND AT INDEX: ${ajaxIdx} (if not -1, table may load data dynamically)\n` +
     `<tr> COUNT: ${trCount}\n` +
-    `<td> COUNT: ${tdCount}\n` +
     `"records found" TEXT: ${recordsFoundMatch ? recordsFoundMatch[0] : "NOT FOUND"}\n\n`;
-
   const snippet = tableIdx !== -1 ? text.slice(tableIdx, tableIdx + 4000) : text.slice(0, 4000);
-
   res.setHeader("Content-Type", "text/plain");
-  res.status(200).send(`STATUS: ${r.status}\n\n${summary}--- SNIPPET FROM <table> ONWARD ---\n${snippet}`);
+  res.status(200).send(`STATUS: ${r.status}\n\n${summary}--- SNIPPET ---\n${snippet}`);
 }
 
 function stripTags(html) {
@@ -112,7 +104,8 @@ async function fetchConjunctions(norad) {
   if (!res.ok) throw new Error(`SOCRATES HTTP ${res.status}`);
   const html = await res.text();
 
-  if (/0 records found/i.test(html)) return [];
+  const recordsMatch = html.match(/(\d+)\s+records found/i);
+  if (recordsMatch && recordsMatch[1] === "0") return [];
 
   const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
   const parsedRows = [];
