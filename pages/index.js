@@ -55,7 +55,10 @@ function ProximityGauge({ minRangeKm, risk }) {
         />
       </div>
       <div className={styles.gaugeScale}>
-        <span>0</span><span>1</span><span>3</span><span>5 km</span>
+        <span className={styles.gaugeTickFirst}>0</span>
+        <span className={styles.gaugeTick} style={{ left: "20%" }}>1</span>
+        <span className={styles.gaugeTick} style={{ left: "60%" }}>3</span>
+        <span className={styles.gaugeTickLast}>5 km</span>
       </div>
     </div>
   );
