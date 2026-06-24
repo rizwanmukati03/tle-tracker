@@ -201,12 +201,23 @@
   text-align: center;
 }
 
+/* ── Grid ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
   gap: 20px;
 }
 
+/* If the last card is on an odd position (i.e. it's alone, unpaired,
+   in a 2-column layout), stretch it to fill the full row width instead
+   of leaving half the row empty. Safe at any column count: harmless
+   on single-column mobile, and only fires when there's genuinely a
+   leftover lone card. */
+.grid > .card:nth-last-child(1):nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* ── Card ── */
 .card {
   background: #0d1422;
   border: 1px solid #1a2740;
@@ -639,11 +650,33 @@
 .gaugeMarker_watch { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
 
 .gaugeScale {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+}
+
+.gaugeTick {
+  position: absolute;
+  transform: translateX(-50%);
   font-size: 0.58rem;
   color: #2a4a6a;
-  margin-top: 4px;
+  font-family: "JetBrains Mono", monospace;
+  white-space: nowrap;
+}
+
+.gaugeTickFirst {
+  position: absolute;
+  left: 0;
+  font-size: 0.58rem;
+  color: #2a4a6a;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.gaugeTickLast {
+  position: absolute;
+  right: 0;
+  font-size: 0.58rem;
+  color: #2a4a6a;
   font-family: "JetBrains Mono", monospace;
 }
 
