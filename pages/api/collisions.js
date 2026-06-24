@@ -17,6 +17,20 @@ let lastForceFetch = 0;
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
 const NORAD_PATTERN = /^\d{4,6}$/;
 
+async function debugFetch(norad, res) {
+  const url = `https://celestrak.org/SOCRATES/table-socrates.php?CATNR=${norad}&ORDER=MINRANGE&MAX=10`;
+  const r = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+      Accept: "text/html,*/*",
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  const text = await r.text();
+  res.setHeader("Content-Type", "text/plain");
+  res.status(200).send(`STATUS: ${r.status}\n\nFIRST 3000 CHARS:\n${text.slice(0, 3000)}`);
+}
+
 function stripTags(html) {
   return html
     .replace(/<[^>]*>/g, "")
@@ -151,6 +165,10 @@ async function getConjunctionsForSat(norad, force = false) {
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
+
+  if (req.query.debug === "true") {
+    return debugFetch(req.query.norad || 68835, res);
+  }
 
   const force = req.query.force === "true";
   const now = Date.now();
