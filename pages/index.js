@@ -437,10 +437,10 @@ export default function Home() {
               <div className={styles.bottomBar}>
                 <button
                   className={styles.fetchBtn}
-                  onClick={() => fetchAll(true)}
+                  onClick={() => { fetchAll(true); fetchCollisions(true); }}
                   disabled={loading}
                 >
-                  ⟳ Refresh TLE Data
+                  ⟳ Refresh All Data
                 </button>
                 <button className={styles.btnDownloadAll} onClick={handleDownloadAll}>
                   ↓ Download All (.tle)
