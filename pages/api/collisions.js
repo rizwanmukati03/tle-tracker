@@ -27,8 +27,25 @@ async function debugFetch(norad, res) {
     signal: AbortSignal.timeout(10000),
   });
   const text = await r.text();
+
+  const tableIdx = text.indexOf("<table");
+  const ajaxIdx = text.search(/ajax\s*:/i);
+  const trCount = (text.match(/<tr/gi) || []).length;
+  const tdCount = (text.match(/<td/gi) || []).length;
+  const recordsFoundMatch = text.match(/(\d+)\s+records found/i);
+
+  const summary =
+    `TOTAL HTML LENGTH: ${text.length}\n` +
+    `<table FOUND AT INDEX: ${tableIdx}\n` +
+    `'ajax:' FOUND AT INDEX: ${ajaxIdx} (if not -1, table may load data dynamically)\n` +
+    `<tr> COUNT: ${trCount}\n` +
+    `<td> COUNT: ${tdCount}\n` +
+    `"records found" TEXT: ${recordsFoundMatch ? recordsFoundMatch[0] : "NOT FOUND"}\n\n`;
+
+  const snippet = tableIdx !== -1 ? text.slice(tableIdx, tableIdx + 4000) : text.slice(0, 4000);
+
   res.setHeader("Content-Type", "text/plain");
-  res.status(200).send(`STATUS: ${r.status}\n\nFIRST 3000 CHARS:\n${text.slice(0, 3000)}`);
+  res.status(200).send(`STATUS: ${r.status}\n\n${summary}--- SNIPPET FROM <table> ONWARD ---\n${snippet}`);
 }
 
 function stripTags(html) {
