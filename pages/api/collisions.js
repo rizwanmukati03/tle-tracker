@@ -17,29 +17,6 @@ let lastForceFetch = 0;
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
 const NORAD_PATTERN = /^\d{4,6}$/;
 
-async function debugFetch(norad, res) {
-  const url = `https://celestrak.org/SOCRATES/table-socrates.php?CATNR=${norad}&ORDER=MINRANGE&MAX=10`;
-  const r = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
-      Accept: "text/html,*/*",
-    },
-    signal: AbortSignal.timeout(10000),
-  });
-  const text = await r.text();
-  const tableIdx = text.indexOf("<table");
-  const trCount = (text.match(/<tr/gi) || []).length;
-  const recordsFoundMatch = text.match(/(\d+)\s+records found/i);
-  const summary =
-    `TOTAL HTML LENGTH: ${text.length}\n` +
-    `<table FOUND AT INDEX: ${tableIdx}\n` +
-    `<tr> COUNT: ${trCount}\n` +
-    `"records found" TEXT: ${recordsFoundMatch ? recordsFoundMatch[0] : "NOT FOUND"}\n\n`;
-  const snippet = tableIdx !== -1 ? text.slice(tableIdx, tableIdx + 4000) : text.slice(0, 4000);
-  res.setHeader("Content-Type", "text/plain");
-  res.status(200).send(`STATUS: ${r.status}\n\n${summary}--- SNIPPET ---\n${snippet}`);
-}
-
 function stripTags(html) {
   return html
     .replace(/<[^>]*>/g, "")
@@ -175,10 +152,6 @@ async function getConjunctionsForSat(norad, force = false) {
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-
-  if (req.query.debug === "true") {
-    return debugFetch(req.query.norad || 68835, res);
-  }
 
   const force = req.query.force === "true";
   const now = Date.now();
