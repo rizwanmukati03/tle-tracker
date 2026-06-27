@@ -355,6 +355,8 @@ function SatelliteCard({ sat }) {
             <span className={styles.sourceTag}>via {sat.source}</span>
             {sat.fromCache && !sat.stale && <span className={styles.cacheTag}>cached</span>}
             {sat.stale && <span className={styles.staleTag}>stale — fetch failed</span>}
+            {!sat.fromCache && sat.tleChanged === true && <span className={styles.updatedTag}>🔄 Updated</span>}
+            {!sat.fromCache && sat.tleChanged === false && <span className={styles.noChangeTag}>No change</span>}
           </div>
 
           <div className={styles.actions}>
