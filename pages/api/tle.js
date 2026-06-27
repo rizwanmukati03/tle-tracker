@@ -21,9 +21,6 @@ function parseCached(raw) {
   return typeof raw === "string" ? JSON.parse(raw) : raw;
 }
 
-// Decode the TLE's own epoch (line 1, columns 19-32) into a real UTC timestamp.
-// Same algorithm as the client-side display decoder, but returns milliseconds
-// instead of a formatted string, since this is used as the archive's sort key.
 function parseEpochMs(line1) {
   try {
     const epochStr = line1.substring(18, 32).trim();
@@ -83,9 +80,9 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
-// Archive a TLE only if it's genuinely different from the last one we kept.
-// Sorted by the TLE's own epoch date, not by when we happened to fetch it —
-// that's what makes "find the TLE as of date X" actually meaningful.
+// Archive a TLE only if genuinely different from the last kept entry.
+// Returns true if this was a real change (or the first-ever entry),
+// false if it was identical to what we already had.
 async function maybeArchive(norad, payload) {
   const archiveKey = `tle_archive_${norad}`;
   const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
@@ -93,12 +90,13 @@ async function maybeArchive(norad, payload) {
   if (latest && latest.length > 0) {
     const lastEntry = typeof latest[0] === "string" ? JSON.parse(latest[0]) : latest[0];
     if (lastEntry.line1 === payload.line1 && lastEntry.line2 === payload.line2) {
-      return; // unchanged since last archived entry — skip
+      return false;
     }
   }
 
   const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
   await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
+  return true;
 }
 
 async function fetchTLE(norad, force = false) {
@@ -128,8 +126,8 @@ async function fetchTLE(norad, force = false) {
   const epochMs = parseEpochMs(data.line1);
   const payload = { ...data, source, fetchedAt, epochMs };
   await redis.set(cacheKey, JSON.stringify(payload), { ex: CACHE_TTL_SECONDS });
-  await maybeArchive(norad, payload);
-  return { ...payload, fromCache: false };
+  const changed = await maybeArchive(norad, payload);
+  return { ...payload, fromCache: false, tleChanged: changed };
 }
 
 export default async function handler(req, res) {
