@@ -200,6 +200,7 @@ function ArchivePanel({ norad }) {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [results, setResults] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [archiveErr, setArchiveErr] = useState(null);
 
@@ -214,6 +215,7 @@ function ArchivePanel({ norad }) {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to fetch archive");
       setResults(json.entries);
+      setVisibleCount(5);
     } catch (e) {
       setArchiveErr(e.message);
     } finally {
@@ -226,6 +228,9 @@ function ArchivePanel({ norad }) {
       handleSearch();
     }
   }, [open, results, handleSearch]);
+
+  const visibleResults = results ? results.slice(0, visibleCount) : [];
+  const remaining = results ? results.length - visibleCount : 0;
 
   return (
     <div className={styles.archiveSection}>
@@ -266,21 +271,32 @@ function ArchivePanel({ norad }) {
           )}
 
           {results && results.length > 0 && (
-            <div className={styles.archiveList}>
-              {results.map((entry, i) => (
-                <div key={i} className={styles.archiveEntry}>
-                  <div className={styles.archiveEntryHeader}>
-                    <span className={styles.archiveEntryDate}>{formatArchiveDate(entry.epochMs ?? entry.fetchedAt)}</span>
-                    <span className={styles.archiveEntrySource}>via {entry.source}</span>
+            <>
+              <div className={styles.archiveList}>
+                {visibleResults.map((entry, i) => (
+                  <div key={i} className={styles.archiveEntry}>
+                    <div className={styles.archiveEntryHeader}>
+                      <span className={styles.archiveEntryDate}>{formatArchiveDate(entry.epochMs ?? entry.fetchedAt)}</span>
+                      <span className={styles.archiveEntrySource}>via {entry.source}</span>
+                    </div>
+                    <div className={styles.archiveEntryTle}>
+                      <code>{entry.line1}</code>
+                      <code>{entry.line2}</code>
+                    </div>
+                    <div className={styles.archiveEntryCaptured}>captured {formatArchiveDate(entry.fetchedAt)}</div>
                   </div>
-                  <div className={styles.archiveEntryTle}>
-                    <code>{entry.line1}</code>
-                    <code>{entry.line2}</code>
-                  </div>
-                  <div className={styles.archiveEntryCaptured}>captured {formatArchiveDate(entry.fetchedAt)}</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {remaining > 0 && (
+                <button
+                  className={styles.archiveLoadMoreBtn}
+                  onClick={() => setVisibleCount(v => v + 5)}
+                >
+                  Show {Math.min(5, remaining)} more ({remaining} remaining)
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
