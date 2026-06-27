@@ -80,22 +80,24 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
-// Archive a TLE only if genuinely different from the last kept entry.
-// Returns true if this was a real change (or the first-ever entry),
-// false if it was identical to what we already had.
+// Archive a TLE only if its exact content has never been archived before.
+// Uses a dedicated Set as the source of truth for "have we seen this exact
+// TLE content before" — a direct membership check, not an ordering-dependent
+// "compare against the latest entry" lookup. Returns true if newly archived
+// (including the first-ever entry), false if this exact content already exists.
 async function maybeArchive(norad, payload) {
   const archiveKey = `tle_archive_${norad}`;
-  const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
+  const seenKey = `tle_archive_seen_${norad}`;
+  const fingerprint = `${payload.line1}|${payload.line2}`;
 
-  if (latest && latest.length > 0) {
-    const lastEntry = typeof latest[0] === "string" ? JSON.parse(latest[0]) : latest[0];
-    if (lastEntry.line1 === payload.line1 && lastEntry.line2 === payload.line2) {
-      return false;
-    }
+  const alreadySeen = await redis.sismember(seenKey, fingerprint);
+  if (alreadySeen) {
+    return false;
   }
 
   const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
   await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
+  await redis.sadd(seenKey, fingerprint);
   return true;
 }
 
