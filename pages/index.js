@@ -144,6 +144,102 @@ function CollisionSection({ norad, data }) {
   );
 }
 
+function formatArchiveDate(ms) {
+  return new Date(ms).toUTCString().replace("GMT", "UTC");
+}
+
+function ArchivePanel({ norad }) {
+  const [open, setOpen] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [results, setResults] = useState(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [archiveErr, setArchiveErr] = useState(null);
+
+  const handleSearch = useCallback(async () => {
+    setArchiveLoading(true);
+    setArchiveErr(null);
+    try {
+      let url = `/api/archive?norad=${norad}&limit=50`;
+      if (fromDate) url += `&from=${new Date(fromDate + "T00:00:00Z").getTime()}`;
+      if (toDate) url += `&to=${new Date(toDate + "T23:59:59Z").getTime()}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to fetch archive");
+      setResults(json.entries);
+    } catch (e) {
+      setArchiveErr(e.message);
+    } finally {
+      setArchiveLoading(false);
+    }
+  }, [norad, fromDate, toDate]);
+
+  useEffect(() => {
+    if (open && results === null) {
+      handleSearch();
+    }
+  }, [open, results, handleSearch]);
+
+  return (
+    <div className={styles.archiveSection}>
+      <button className={styles.archiveToggle} onClick={() => setOpen(!open)}>
+        {open ? "▾" : "▸"} 📜 TLE Archive
+      </button>
+
+      {open && (
+        <div className={styles.archiveBody}>
+          <div className={styles.archiveFilters}>
+            <label className={styles.archiveLabel}>
+              From
+              <input
+                type="date"
+                value={fromDate}
+                onChange={e => setFromDate(e.target.value)}
+                className={styles.archiveDateInput}
+              />
+            </label>
+            <label className={styles.archiveLabel}>
+              To
+              <input
+                type="date"
+                value={toDate}
+                onChange={e => setToDate(e.target.value)}
+                className={styles.archiveDateInput}
+              />
+            </label>
+            <button className={styles.archiveSearchBtn} onClick={handleSearch} disabled={archiveLoading}>
+              {archiveLoading ? "Searching…" : "Search"}
+            </button>
+          </div>
+
+          {archiveErr && <div className={styles.archiveError}>{archiveErr}</div>}
+
+          {results && results.length === 0 && !archiveLoading && (
+            <div className={styles.archiveEmpty}>No archived entries in this range.</div>
+          )}
+
+          {results && results.length > 0 && (
+            <div className={styles.archiveList}>
+              {results.map((entry, i) => (
+                <div key={i} className={styles.archiveEntry}>
+                  <div className={styles.archiveEntryHeader}>
+                    <span className={styles.archiveEntryDate}>{formatArchiveDate(entry.archivedAt)}</span>
+                    <span className={styles.archiveEntrySource}>via {entry.source}</span>
+                  </div>
+                  <div className={styles.archiveEntryTle}>
+                    <code>{entry.line1}</code>
+                    <code>{entry.line2}</code>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SatelliteCard({ sat }) {
   const [copied, setCopied] = useState(false);
 
@@ -225,6 +321,7 @@ function SatelliteCard({ sat }) {
       )}
 
       {sat.collisions && <CollisionSection norad={sat.norad} data={sat.collisions} />}
+      <ArchivePanel norad={sat.norad} />
     </div>
   );
 }
