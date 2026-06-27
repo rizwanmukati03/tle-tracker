@@ -21,6 +21,26 @@ function parseCached(raw) {
   return typeof raw === "string" ? JSON.parse(raw) : raw;
 }
 
+// Decode the TLE's own epoch (line 1, columns 19-32) into a real UTC timestamp.
+// Same algorithm as the client-side display decoder, but returns milliseconds
+// instead of a formatted string, since this is used as the archive's sort key.
+function parseEpochMs(line1) {
+  try {
+    const epochStr = line1.substring(18, 32).trim();
+    if (!epochStr) return null;
+    const year2 = parseInt(epochStr.substring(0, 2), 10);
+    const day = parseFloat(epochStr.substring(2));
+    const year = year2 >= 57 ? 1900 + year2 : 2000 + year2;
+    const date = new Date(Date.UTC(year, 0, 1));
+    date.setUTCDate(date.getUTCDate() + Math.floor(day) - 1);
+    const frac = day - Math.floor(day);
+    date.setUTCMilliseconds(frac * 86400000);
+    return date.getTime();
+  } catch {
+    return null;
+  }
+}
+
 async function fetchFromCelestrak(norad) {
   const url = `https://celestrak.org/NORAD/elements/gp.php?CATNR=${norad}&FORMAT=TLE`;
   const res = await fetch(url, {
@@ -64,7 +84,8 @@ async function fetchFromN2YO(norad) {
 }
 
 // Archive a TLE only if it's genuinely different from the last one we kept.
-// Sorted set per satellite, score = capture timestamp, so it's queryable by date range.
+// Sorted by the TLE's own epoch date, not by when we happened to fetch it —
+// that's what makes "find the TLE as of date X" actually meaningful.
 async function maybeArchive(norad, payload) {
   const archiveKey = `tle_archive_${norad}`;
   const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
@@ -76,7 +97,8 @@ async function maybeArchive(norad, payload) {
     }
   }
 
-  await redis.zadd(archiveKey, { score: payload.fetchedAt, member: JSON.stringify(payload) });
+  const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
+  await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
 }
 
 async function fetchTLE(norad, force = false) {
@@ -103,7 +125,8 @@ async function fetchTLE(norad, force = false) {
   }
 
   const fetchedAt = Date.now();
-  const payload = { ...data, source, fetchedAt };
+  const epochMs = parseEpochMs(data.line1);
+  const payload = { ...data, source, fetchedAt, epochMs };
   await redis.set(cacheKey, JSON.stringify(payload), { ex: CACHE_TTL_SECONDS });
   await maybeArchive(norad, payload);
   return { ...payload, fromCache: false };
