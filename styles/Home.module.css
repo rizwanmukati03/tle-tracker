@@ -887,3 +887,20 @@
   color: #3a5a7a;
   margin-top: 6px;
 }
+.updatedTag {
+  font-size: 0.68rem;
+  color: #00e676;
+  background: rgba(0,230,118,0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,230,118,0.2);
+}
+
+.noChangeTag {
+  font-size: 0.68rem;
+  color: #4a6a8a;
+  background: #080e1a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #1a2740;
+}
