@@ -821,3 +821,8 @@
   white-space: nowrap;
   overflow-x: auto;
 }
+.archiveEntryCaptured {
+  font-size: 0.6rem;
+  color: #3a5a7a;
+  margin-top: 6px;
+}
