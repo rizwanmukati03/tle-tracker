@@ -31,7 +31,9 @@ export default async function handler(req, res) {
       const member = raw[i];
       const score = raw[i + 1];
       const parsed = typeof member === "string" ? JSON.parse(member) : member;
-      entries.push({ ...parsed, archivedAt: Number(score) });
+      // score is the epoch timestamp (or fetchedAt as fallback for older entries
+      // archived before epoch-based scoring existed)
+      entries.push({ ...parsed, epochMs: Number(score) });
     }
 
     res.status(200).json({ norad: Number(norad), count: entries.length, entries });
