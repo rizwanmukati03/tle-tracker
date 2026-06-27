@@ -514,7 +514,7 @@ export default function Home() {
             </div>
             <div className={styles.headerCredit}>
               <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
-              <span className={styles.creditName}>Manager Rizwan Mukati</span>
+              <span className={styles.creditName}>Rizwan Mukati</span>
             </div>
           </div>
         </header>
