@@ -1,4 +1,8 @@
 // pages/api/collisions.js
+import { Redis } from "@upstash/redis";
+
+const redis = Redis.fromEnv();
+
 const SATELLITES = [
   { name: "PRSC-EO1", norad: 62726 },
   { name: "PRSC-EO2", norad: 67748 },
@@ -9,13 +13,16 @@ const SATELLITES = [
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const cache = {};
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const FORCE_COOLDOWN_MS = 10 * 60 * 1000;
-let lastForceFetch = 0;
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
+const FORCE_COOLDOWN_SECONDS = 10 * 60;
 
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
 const NORAD_PATTERN = /^\d{4,6}$/;
+
+function parseCached(raw) {
+  if (!raw) return null;
+  return typeof raw === "string" ? JSON.parse(raw) : raw;
+}
 
 function stripTags(html) {
   return html
@@ -131,21 +138,20 @@ function riskLevel(minRangeKm) {
 
 async function getConjunctionsForSat(norad, force = false) {
   const cacheKey = `conj_${norad}`;
-  const cached = cache[cacheKey];
 
-  if (!force && cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    return { conjunctions: cached.data, fetchedAt: cached.fetchedAt, fromCache: true };
+  if (!force) {
+    const cached = parseCached(await redis.get(cacheKey));
+    if (cached) return { conjunctions: cached.conjunctions, fetchedAt: cached.fetchedAt, fromCache: true };
   }
 
   try {
     const data = await fetchConjunctions(norad);
     const fetchedAt = Date.now();
-    cache[cacheKey] = { data, fetchedAt };
+    await redis.set(cacheKey, JSON.stringify({ conjunctions: data, fetchedAt }), { ex: CACHE_TTL_SECONDS });
     return { conjunctions: data, fetchedAt, fromCache: false };
   } catch (err) {
-    if (cached) {
-      return { conjunctions: cached.data, fetchedAt: cached.fetchedAt, fromCache: true, stale: true };
-    }
+    const cached = parseCached(await redis.get(cacheKey));
+    if (cached) return { conjunctions: cached.conjunctions, fetchedAt: cached.fetchedAt, fromCache: true, stale: true };
     throw err;
   }
 }
@@ -156,15 +162,21 @@ export default async function handler(req, res) {
   const force = req.query.force === "true";
   const now = Date.now();
 
-  if (force && now - lastForceFetch < FORCE_COOLDOWN_MS) {
-    const waitMinutes = Math.ceil((FORCE_COOLDOWN_MS - (now - lastForceFetch)) / 60000);
-    return res.status(429).json({
-      error: `Force refresh cooldown active. Please wait ${waitMinutes} more minute(s).`,
-      cooldown: true,
-      waitMinutes,
-    });
+  if (force) {
+    const cooldownKey = "collisions_last_force_fetch";
+    const lastForceRaw = await redis.get(cooldownKey);
+    const lastForce = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
+
+    if (lastForce && now - lastForce < FORCE_COOLDOWN_SECONDS * 1000) {
+      const waitMinutes = Math.ceil((FORCE_COOLDOWN_SECONDS * 1000 - (now - lastForce)) / 60000);
+      return res.status(429).json({
+        error: `Force refresh cooldown active. Please wait ${waitMinutes} more minute(s).`,
+        cooldown: true,
+        waitMinutes,
+      });
+    }
+    await redis.set(cooldownKey, now.toString(), { ex: FORCE_COOLDOWN_SECONDS });
   }
-  if (force) lastForceFetch = now;
 
   try {
     const results = await Promise.allSettled(
