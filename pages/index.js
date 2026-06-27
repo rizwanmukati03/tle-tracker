@@ -223,13 +223,14 @@ function ArchivePanel({ norad }) {
               {results.map((entry, i) => (
                 <div key={i} className={styles.archiveEntry}>
                   <div className={styles.archiveEntryHeader}>
-                    <span className={styles.archiveEntryDate}>{formatArchiveDate(entry.archivedAt)}</span>
+                    <span className={styles.archiveEntryDate}>{formatArchiveDate(entry.epochMs ?? entry.fetchedAt)}</span>
                     <span className={styles.archiveEntrySource}>via {entry.source}</span>
                   </div>
                   <div className={styles.archiveEntryTle}>
                     <code>{entry.line1}</code>
                     <code>{entry.line2}</code>
                   </div>
+                  <div className={styles.archiveEntryCaptured}>captured {formatArchiveDate(entry.fetchedAt)}</div>
                 </div>
               ))}
             </div>
