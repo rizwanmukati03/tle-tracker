@@ -43,7 +43,6 @@
   text-transform: uppercase;
 }
 
-/* ── Header credit — always visible ── */
 .headerCredit {
   display: flex;
   flex-direction: column;
@@ -71,7 +70,6 @@
   letter-spacing: 0.01em;
 }
 
-/* ── Orbit animation ── */
 .orbit {
   position: relative;
   width: 52px;
@@ -106,7 +104,6 @@
   to   { transform: translateX(-50%) rotate(360deg); }
 }
 
-/* ── Stats bar ── */
 .statsBar {
   background: #080e1a;
   border-bottom: 1px solid #1a2740;
@@ -147,7 +144,6 @@
   background: #1a2740;
 }
 
-/* ── Main ── */
 .main {
   flex: 1;
   max-width: 1100px;
@@ -156,7 +152,6 @@
   padding: 36px 24px;
 }
 
-/* ── Loading state ── */
 .loadingState {
   display: flex;
   flex-direction: column;
@@ -195,7 +190,6 @@
   transform-origin: 5px 37px;
 }
 
-/* ── Error ── */
 .globalError {
   background: rgba(255,82,82,0.08);
   border: 1px solid rgba(255,82,82,0.25);
@@ -207,14 +201,16 @@
   text-align: center;
 }
 
-/* ── Grid ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
   gap: 20px;
 }
 
-/* ── Card ── */
+.grid > .card:nth-last-child(1):nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: #0d1422;
   border: 1px solid #1a2740;
@@ -272,7 +268,6 @@
   border: 1px solid #1a2740;
 }
 
-/* ── TLE block ── */
 .tleBlock {
   background: #050a10;
   border: 1px solid #1a2740;
@@ -308,7 +303,6 @@
   white-space: nowrap;
 }
 
-/* ── Epoch ── */
 .epochRow {
   display: flex;
   align-items: center;
@@ -330,7 +324,6 @@
   font-family: "JetBrains Mono", monospace;
 }
 
-/* ── Meta ── */
 .metaRow {
   display: flex;
   align-items: center;
@@ -356,7 +349,6 @@
   border: 1px solid rgba(255,179,0,0.2);
 }
 
-/* ── Card actions ── */
 .actions {
   display: flex;
   gap: 10px;
@@ -387,7 +379,6 @@
 .btnSecondary:hover, .btnPrimary:hover { opacity: 0.85; transform: translateY(-1px); }
 .btnSecondary:active, .btnPrimary:active { transform: translateY(0); }
 
-/* ── Error box ── */
 .errorBox {
   display: flex;
   align-items: center;
@@ -401,7 +392,6 @@
 
 .errorIcon { font-size: 1rem; }
 
-/* ── Bottom bar ── */
 .bottomBar {
   margin-top: 32px;
   display: flex;
@@ -448,7 +438,6 @@
   color: #060b14;
 }
 
-/* ── Footer ── */
 .footer {
   border-top: 1px solid #1a2740;
   padding: 14px 24px;
@@ -458,7 +447,6 @@
   letter-spacing: 0.03em;
 }
 
-/* ── Mobile ── */
 @media (max-width: 600px) {
   .header { padding: 18px 16px; }
   .headerCredit { align-items: flex-start; }
@@ -468,15 +456,14 @@
   .tleLine code { font-size: 0.68rem; }
   .bottomBar { flex-direction: column; }
   .fetchBtn, .btnDownloadAll { width: 100%; justify-content: center; }
+  .conjunctionFields { flex-direction: column; gap: 10px; }
 }
 
-/* ── Countdown ── */
 .countdown {
   color: #00e676;
   font-size: 0.95rem;
 }
 
-/* ── Cooldown message ── */
 .cooldownMsg {
   background: rgba(255,179,0,0.08);
   border: 1px solid rgba(255,179,0,0.25);
@@ -488,7 +475,6 @@
   text-align: center;
 }
 
-/* ── Stale card ── */
 .cardStale {
   border-color: rgba(255,179,0,0.25);
 }
@@ -502,10 +488,402 @@
   border: 1px solid rgba(255,179,0,0.2);
 }
 
-/* ── Advised credit ── */
 .creditAdvised {
   font-size: 0.72rem;
   color: #7ab0d4;
   margin-top: 4px;
   letter-spacing: 0.02em;
+}
+
+/* ── Critical collision banner (top of page) ── */
+.criticalBanner {
+  background: rgba(255,82,82,0.08);
+  border-bottom: 1px solid rgba(255,82,82,0.25);
+  color: #ff8a80;
+  padding: 11px 24px;
+  text-align: center;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.criticalBannerIcon { font-size: 1rem; }
+
+/* ── Collision risk section (per card) ── */
+.collisionSection {
+  border-top: 1px solid #1a2740;
+  padding-top: 14px;
+  margin-top: 16px;
+}
+
+.collisionHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.collisionLabel {
+  font-size: 0.68rem;
+  color: #7ab0d4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.collisionCount {
+  font-size: 0.7rem;
+  color: #4a6a8a;
+}
+
+.staleTagSmall {
+  font-size: 0.62rem;
+  color: #ffb300;
+  background: rgba(255,179,0,0.1);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+.collisionError, .collisionNone {
+  font-size: 0.78rem;
+  color: #4a6a8a;
+  padding: 8px 0;
+}
+
+.moreNote {
+  font-size: 0.7rem;
+  color: #4a6a8a;
+  margin-bottom: 8px;
+}
+
+/* ── Conjunction card (redesigned: accent border, larger fields) ── */
+.conjunctionCard {
+  border-radius: 0 8px 8px 0;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: #080e1a;
+  border: 1px solid #1a2740;
+  border-left: 4px solid #2a4060;
+}
+.conj_critical { background: rgba(255,82,82,0.07); border-color: rgba(255,82,82,0.25); border-left-color: #ff5252; }
+.conj_warning { background: rgba(255,179,0,0.07); border-color: rgba(255,179,0,0.25); border-left-color: #ffb300; }
+.conj_watch { border-left-color: #7ab0d4; }
+
+.riskCritical, .riskWarning, .riskWatch {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.riskCritical { background: #501313; color: #F7C1C1; }
+.riskWarning { background: #412402; color: #FAC775; }
+.riskWatch { background: rgba(122,176,212,0.15); color: #7ab0d4; }
+
+.conjunctionFields {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.fieldLabel {
+  font-size: 0.62rem;
+  color: #7ab0d4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+
+.fieldValueLg {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.distCritical { color: #ff8a80; }
+.distWarning { color: #ffb300; }
+.distWatch { color: #7ab0d4; }
+
+.fieldValueMd {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #e8f0fe;
+}
+
+/* ── Proximity gauge (distance) ── */
+.gaugeWrap {
+  margin-bottom: 14px;
+}
+
+.gaugeTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  background: #050a10;
+}
+
+.gaugeZoneCritical { width: 20%; background: rgba(255,82,82,0.35); }
+.gaugeZoneWarning { width: 40%; background: rgba(255,179,0,0.3); }
+.gaugeZoneWatch { width: 40%; background: rgba(122,176,212,0.25); }
+
+.gaugeMarker {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+.gaugeMarker_critical { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
+.gaugeMarker_warning { background: #ffb300; box-shadow: 0 0 6px #ffb300; }
+.gaugeMarker_watch { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
+
+.gaugeScale {
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+}
+
+.gaugeTick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  color: #2a4a6a;
+  font-family: "JetBrains Mono", monospace;
+  white-space: nowrap;
+}
+
+.gaugeTickFirst {
+  position: absolute;
+  left: 0;
+  font-size: 0.58rem;
+  color: #2a4a6a;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.gaugeTickLast {
+  position: absolute;
+  right: 0;
+  font-size: 0.58rem;
+  color: #2a4a6a;
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ── Probability gauge (log-scale, independent risk signal) ── */
+.probGaugeWrap { margin-bottom: 6px; }
+
+.probGaugeLabelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.probValue {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.probValue_low { color: #7ab0d4; }
+.probValue_moderate { color: #00e676; }
+.probValue_elevated { color: #ffb300; }
+.probValue_high { color: #ff5252; }
+.probNoData { font-size: 0.7rem; color: #4a6a8a; }
+
+.probGaugeTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  background: #050a10;
+}
+.probZoneLow { width: 25%; background: rgba(122,176,212,0.3); }
+.probZoneModerate { width: 25%; background: rgba(0,230,118,0.25); }
+.probZoneElevated { width: 25%; background: rgba(255,179,0,0.3); }
+.probZoneHigh { width: 25%; background: rgba(255,82,82,0.35); }
+
+.probMarker {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+.probMarker_low { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
+.probMarker_moderate { background: #00e676; box-shadow: 0 0 6px #00e676; }
+.probMarker_elevated { background: #ffb300; box-shadow: 0 0 6px #ffb300; }
+.probMarker_high { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
+
+.probCaveat {
+  font-size: 0.6rem;
+  color: #4a6a8a;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.conjunctionTarget {
+  font-size: 0.85rem;
+  color: #e8f0fe;
+  border-top: 1px solid #1a2740;
+  padding-top: 10px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.statusTag { color: #5a7a9a; }
+
+.conjunctionMeta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  color: #7b8fa8;
+}
+
+.viewReportLink {
+  display: inline-flex;
+  font-size: 0.7rem;
+  color: #00d4ff;
+  text-decoration: none;
+  margin-top: 4px;
+}
+.viewReportLink:hover { text-decoration: underline; }
+
+/* ── TLE Archive panel (per card) ── */
+.archiveSection {
+  border-top: 1px solid #1a2740;
+  padding-top: 12px;
+  margin-top: 16px;
+}
+
+.archiveToggle {
+  background: none;
+  border: none;
+  color: #7ab0d4;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.archiveBody {
+  margin-top: 12px;
+}
+
+.archiveFilters {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.archiveLabel {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.62rem;
+  color: #4a6a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  gap: 4px;
+}
+
+.archiveDateInput {
+  background: #050a10;
+  border: 1px solid #1a2740;
+  color: #e8f0fe;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.archiveSearchBtn {
+  background: linear-gradient(135deg, #0055cc, #00aaff);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.archiveSearchBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.archiveError {
+  color: #ff8a80;
+  font-size: 0.78rem;
+  padding: 6px 0;
+}
+
+.archiveEmpty {
+  color: #4a6a8a;
+  font-size: 0.78rem;
+  padding: 8px 0;
+}
+
+.archiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.archiveEntry {
+  background: #080e1a;
+  border: 1px solid #1a2740;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.archiveEntryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.archiveEntryDate {
+  font-size: 0.72rem;
+  color: #00e676;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.archiveEntrySource {
+  font-size: 0.65rem;
+  color: #4a6a8a;
+}
+
+.archiveEntryTle {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.archiveEntryTle code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: #90caf9;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.archiveEntryCaptured {
+  font-size: 0.6rem;
+  color: #3a5a7a;
+  margin-top: 6px;
 }
