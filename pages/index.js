@@ -64,6 +64,52 @@ function ProximityGauge({ minRangeKm, risk }) {
   );
 }
 
+function probabilityTier(maxProb) {
+  if (maxProb == null) return null;
+  if (maxProb >= 1e-4) return "high";
+  if (maxProb >= 1e-5) return "elevated";
+  if (maxProb >= 1e-6) return "moderate";
+  return "low";
+}
+
+const PROB_TIER_LABELS = { low: "Low", moderate: "Moderate", elevated: "Elevated", high: "High" };
+
+function ProbabilityGauge({ maxProb }) {
+  if (maxProb == null) {
+    return (
+      <div className={styles.probGaugeWrap}>
+        <div className={styles.probGaugeLabelRow}>
+          <span className={styles.fieldLabel}>Collision probability</span>
+          <span className={styles.probNoData}>No data — object size unknown</span>
+        </div>
+      </div>
+    );
+  }
+
+  const tier = probabilityTier(maxProb);
+  const clamped = Math.min(Math.max(maxProb, 1e-7), 1e-3);
+  const pct = ((Math.log10(clamped) + 7) / 4) * 100;
+
+  return (
+    <div className={styles.probGaugeWrap}>
+      <div className={styles.probGaugeLabelRow}>
+        <span className={styles.fieldLabel}>Collision probability</span>
+        <span className={`${styles.probValue} ${styles["probValue_" + tier]}`}>
+          {maxProb.toExponential(2)} · {PROB_TIER_LABELS[tier]}
+        </span>
+      </div>
+      <div className={styles.probGaugeTrack}>
+        <div className={styles.probZoneLow} />
+        <div className={styles.probZoneModerate} />
+        <div className={styles.probZoneElevated} />
+        <div className={styles.probZoneHigh} />
+        <div className={`${styles.probMarker} ${styles["probMarker_" + tier]}`} style={{ left: `${pct}%` }} />
+      </div>
+      <div className={styles.probCaveat}>⚠ Unreliable for small or unknown-size objects</div>
+    </div>
+  );
+}
+
 function ConjunctionRow({ c }) {
   const badgeCls = {
     critical: styles.riskCritical,
@@ -78,7 +124,7 @@ function ConjunctionRow({ c }) {
 
   return (
     <div className={`${styles.conjunctionCard} ${styles["conj_" + c.risk]}`}>
-      <span className={badgeCls}>{RISK_LABELS[c.risk]}</span>
+      <span className={badgeCls}>● {RISK_LABELS[c.risk]}</span>
 
       <div className={styles.conjunctionFields}>
         <div>
@@ -93,6 +139,8 @@ function ConjunctionRow({ c }) {
 
       <ProximityGauge minRangeKm={c.minRangeKm} risk={c.risk} />
 
+      <ProbabilityGauge maxProb={c.maxProb} />
+
       <div className={styles.conjunctionTarget}>
         vs {c.otherName}{" "}
         {c.otherStatus && <span className={styles.statusTag}>[{c.otherStatus}]</span>} · NORAD {c.otherNorad}
@@ -100,7 +148,6 @@ function ConjunctionRow({ c }) {
 
       <div className={styles.conjunctionMeta}>
         <span>Relative speed: {Number.isFinite(c.relSpeedKmS) ? c.relSpeedKmS.toFixed(2) : "—"} km/s</span>
-        <span>Max prob: {c.maxProb != null ? c.maxProb.toExponential(2) : "n/a"}</span>
         <span>Data age: {Number.isFinite(c.dse) ? c.dse.toFixed(1) : "—"} days</span>
       </div>
     </div>
