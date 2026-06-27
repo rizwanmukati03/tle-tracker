@@ -1,4 +1,8 @@
 // pages/api/tle.js
+import { Redis } from "@upstash/redis";
+
+const redis = Redis.fromEnv();
+
 const SATELLITES = [
   { name: "PRSC-EO1", norad: 62726 },
   { name: "PRSC-EO2", norad: 67748 },
@@ -9,11 +13,13 @@ const SATELLITES = [
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const cache = {};
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;      // 6 hour server cache
-const FORCE_COOLDOWN_MS = 10 * 60 * 1000;   // 10 min cooldown on force refresh
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
+const FORCE_COOLDOWN_SECONDS = 10 * 60;
 
-let lastForceFetch = 0;
+function parseCached(raw) {
+  if (!raw) return null;
+  return typeof raw === "string" ? JSON.parse(raw) : raw;
+}
 
 async function fetchFromCelestrak(norad) {
   const url = `https://celestrak.org/NORAD/elements/gp.php?CATNR=${norad}&FORMAT=TLE`;
@@ -57,14 +63,28 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
+// Archive a TLE only if it's genuinely different from the last one we kept.
+// Sorted set per satellite, score = capture timestamp, so it's queryable by date range.
+async function maybeArchive(norad, payload) {
+  const archiveKey = `tle_archive_${norad}`;
+  const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
+
+  if (latest && latest.length > 0) {
+    const lastEntry = typeof latest[0] === "string" ? JSON.parse(latest[0]) : latest[0];
+    if (lastEntry.line1 === payload.line1 && lastEntry.line2 === payload.line2) {
+      return; // unchanged since last archived entry — skip
+    }
+  }
+
+  await redis.zadd(archiveKey, { score: payload.fetchedAt, member: JSON.stringify(payload) });
+}
+
 async function fetchTLE(norad, force = false) {
   const cacheKey = `tle_${norad}`;
-  const cached = cache[cacheKey];
 
-  // Return cache if valid and not forced
-  if (!force && cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    const expiresIn = Math.round((CACHE_TTL_MS - (Date.now() - cached.fetchedAt)) / 60000);
-    return { ...cached.data, source: cached.source, fetchedAt: cached.fetchedAt, fromCache: true, expiresInMinutes: expiresIn };
+  if (!force) {
+    const cached = parseCached(await redis.get(cacheKey));
+    if (cached) return { ...cached, fromCache: true };
   }
 
   let data, source;
@@ -76,17 +96,17 @@ async function fetchTLE(norad, force = false) {
       data = await fetchFromN2YO(norad);
       source = "n2yo";
     } catch (e2) {
-      // Return stale cache if fetch fails rather than error
-      if (cached) {
-        return { ...cached.data, source: cached.source, fetchedAt: cached.fetchedAt, fromCache: true, stale: true, expiresInMinutes: 0 };
-      }
+      const cached = parseCached(await redis.get(cacheKey));
+      if (cached) return { ...cached, fromCache: true, stale: true };
       throw new Error(`All sources failed. Celestrak: ${e1.message} | n2yo: ${e2.message}`);
     }
   }
 
   const fetchedAt = Date.now();
-  cache[cacheKey] = { data, source, fetchedAt };
-  return { ...data, source, fetchedAt, fromCache: false, expiresInMinutes: 60 };
+  const payload = { ...data, source, fetchedAt };
+  await redis.set(cacheKey, JSON.stringify(payload), { ex: CACHE_TTL_SECONDS });
+  await maybeArchive(norad, payload);
+  return { ...payload, fromCache: false };
 }
 
 export default async function handler(req, res) {
@@ -95,17 +115,21 @@ export default async function handler(req, res) {
   const force = req.query.force === "true";
   const now = Date.now();
 
-  // Enforce 10-minute cooldown on force refresh
-  if (force && now - lastForceFetch < FORCE_COOLDOWN_MS) {
-    const waitMinutes = Math.ceil((FORCE_COOLDOWN_MS - (now - lastForceFetch)) / 60000);
-    return res.status(429).json({
-      error: `Force refresh cooldown active. Please wait ${waitMinutes} more minute(s).`,
-      cooldown: true,
-      waitMinutes,
-    });
-  }
+  if (force) {
+    const cooldownKey = "tle_last_force_fetch";
+    const lastForceRaw = await redis.get(cooldownKey);
+    const lastForce = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
 
-  if (force) lastForceFetch = now;
+    if (lastForce && now - lastForce < FORCE_COOLDOWN_SECONDS * 1000) {
+      const waitMinutes = Math.ceil((FORCE_COOLDOWN_SECONDS * 1000 - (now - lastForce)) / 60000);
+      return res.status(429).json({
+        error: `Force refresh cooldown active. Please wait ${waitMinutes} more minute(s).`,
+        cooldown: true,
+        waitMinutes,
+      });
+    }
+    await redis.set(cooldownKey, now.toString(), { ex: FORCE_COOLDOWN_SECONDS });
+  }
 
   try {
     const results = await Promise.allSettled(
@@ -120,15 +144,7 @@ export default async function handler(req, res) {
       return { ...SATELLITES[i], error: r.reason?.message || "Failed to fetch" };
     });
 
-    // Cache expiry is based on the oldest satellite cache
-    const minExpiry = Math.min(...satellites.filter(s => !s.error).map(s => s.expiresInMinutes || 0));
-
-    res.status(200).json({
-      satellites,
-      generatedAt: now,
-      cacheExpiresInMinutes: minExpiry,
-      forced: force,
-    });
+    res.status(200).json({ satellites, generatedAt: now, forced: force });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
