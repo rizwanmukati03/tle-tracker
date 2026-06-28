@@ -422,7 +422,7 @@ export default function Home() {
       if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
       setData(json);
       setLastFetched(new Date());
-      setCountdown(AUTO_REFRESH_MS / 1000);
+      setCountdown(typeof json.cacheExpiresInSeconds === "number" ? json.cacheExpiresInSeconds : AUTO_REFRESH_MS / 1000);
     } catch (e) {
       setError(e.message);
     } finally {
