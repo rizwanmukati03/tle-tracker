@@ -1,7 +1,3 @@
 {
-  "framework": "nextjs",
-  "crons": [
-    { "path": "/api/tle?force=true", "schedule": "0 6 * * *" },
-    { "path": "/api/collisions?force=true", "schedule": "0 6 * * *" }
-  ]
+  "framework": "nextjs"
 }
