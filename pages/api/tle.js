@@ -80,24 +80,22 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
-// Archive a TLE only if its exact content has never been archived before.
-// Uses a dedicated Set as the source of truth for "have we seen this exact
-// TLE content before" — a direct membership check, not an ordering-dependent
-// "compare against the latest entry" lookup. Returns true if newly archived
-// (including the first-ever entry), false if this exact content already exists.
+// Archive a TLE only if genuinely different from the last kept entry.
+// Returns true if this was a real change (or the first-ever entry),
+// false if it was identical to what we already had.
 async function maybeArchive(norad, payload) {
   const archiveKey = `tle_archive_${norad}`;
-  const seenKey = `tle_archive_seen_${norad}`;
-  const fingerprint = `${payload.line1}|${payload.line2}`;
+  const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
 
-  const alreadySeen = await redis.sismember(seenKey, fingerprint);
-  if (alreadySeen) {
-    return false;
+  if (latest && latest.length > 0) {
+    const lastEntry = typeof latest[0] === "string" ? JSON.parse(latest[0]) : latest[0];
+    if (lastEntry.line1 === payload.line1 && lastEntry.line2 === payload.line2) {
+      return false;
+    }
   }
 
   const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
   await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
-  await redis.sadd(seenKey, fingerprint);
   return true;
 }
 
@@ -106,7 +104,10 @@ async function fetchTLE(norad, force = false) {
 
   if (!force) {
     const cached = parseCached(await redis.get(cacheKey));
-    if (cached) return { ...cached, fromCache: true };
+    if (cached) {
+      const ttl = await redis.ttl(cacheKey);
+      return { ...cached, fromCache: true, ttlSeconds: ttl > 0 ? ttl : 0 };
+    }
   }
 
   let data, source;
@@ -119,7 +120,10 @@ async function fetchTLE(norad, force = false) {
       source = "n2yo";
     } catch (e2) {
       const cached = parseCached(await redis.get(cacheKey));
-      if (cached) return { ...cached, fromCache: true, stale: true };
+      if (cached) {
+        const ttl = await redis.ttl(cacheKey);
+        return { ...cached, fromCache: true, stale: true, ttlSeconds: ttl > 0 ? ttl : 0 };
+      }
       throw new Error(`All sources failed. Celestrak: ${e1.message} | n2yo: ${e2.message}`);
     }
   }
@@ -129,7 +133,7 @@ async function fetchTLE(norad, force = false) {
   const payload = { ...data, source, fetchedAt, epochMs };
   await redis.set(cacheKey, JSON.stringify(payload), { ex: CACHE_TTL_SECONDS });
   const changed = await maybeArchive(norad, payload);
-  return { ...payload, fromCache: false, tleChanged: changed };
+  return { ...payload, fromCache: false, tleChanged: changed, ttlSeconds: CACHE_TTL_SECONDS };
 }
 
 export default async function handler(req, res) {
@@ -167,7 +171,12 @@ export default async function handler(req, res) {
       return { ...SATELLITES[i], error: r.reason?.message || "Failed to fetch" };
     });
 
-    res.status(200).json({ satellites, generatedAt: now, forced: force });
+    const ttlValues = satellites
+      .filter(s => !s.error && typeof s.ttlSeconds === "number")
+      .map(s => s.ttlSeconds);
+    const cacheExpiresInSeconds = ttlValues.length > 0 ? Math.min(...ttlValues) : CACHE_TTL_SECONDS;
+
+    res.status(200).json({ satellites, generatedAt: now, forced: force, cacheExpiresInSeconds });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
