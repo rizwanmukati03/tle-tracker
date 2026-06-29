@@ -3,6 +3,10 @@ import { Redis } from "@upstash/redis";
 
 const redis = Redis.fromEnv();
 
+// Keep dev (Preview) and production data completely separate —
+// VERCEL_ENV is set automatically by Vercel ("production", "preview", or "development").
+const ENV = process.env.VERCEL_ENV === "production" ? "prod" : "dev";
+
 const SATELLITES = [
   { name: "PRSC-EO1", norad: 62726 },
   { name: "PRSC-EO2", norad: 67748 },
@@ -80,27 +84,28 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
-// Archive a TLE only if genuinely different from the last kept entry.
-// Returns true if this was a real change (or the first-ever entry),
-// false if it was identical to what we already had.
+// Archive a TLE only if its exact content has never been archived before.
+// Uses a dedicated Set as a direct membership check ("have we ever seen this
+// exact TLE content?") rather than comparing only against the latest entry —
+// the latest-only approach previously allowed duplicates to slip through.
 async function maybeArchive(norad, payload) {
-  const archiveKey = `tle_archive_${norad}`;
-  const latest = await redis.zrange(archiveKey, 0, 0, { rev: true });
+  const archiveKey = `${ENV}_tle_archive_${norad}`;
+  const seenKey = `${ENV}_tle_archive_seen_${norad}`;
+  const fingerprint = `${payload.line1}|${payload.line2}`;
 
-  if (latest && latest.length > 0) {
-    const lastEntry = typeof latest[0] === "string" ? JSON.parse(latest[0]) : latest[0];
-    if (lastEntry.line1 === payload.line1 && lastEntry.line2 === payload.line2) {
-      return false;
-    }
+  const alreadySeen = await redis.sismember(seenKey, fingerprint);
+  if (alreadySeen) {
+    return false;
   }
 
   const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
   await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
+  await redis.sadd(seenKey, fingerprint);
   return true;
 }
 
 async function fetchTLE(norad, force = false) {
-  const cacheKey = `tle_${norad}`;
+  const cacheKey = `${ENV}_tle_${norad}`;
 
   if (!force) {
     const cached = parseCached(await redis.get(cacheKey));
@@ -143,7 +148,7 @@ export default async function handler(req, res) {
   const now = Date.now();
 
   if (force) {
-    const cooldownKey = "tle_last_force_fetch";
+    const cooldownKey = `${ENV}_tle_last_force_fetch`;
     const lastForceRaw = await redis.get(cooldownKey);
     const lastForce = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
 
@@ -176,7 +181,7 @@ export default async function handler(req, res) {
       .map(s => s.ttlSeconds);
     const cacheExpiresInSeconds = ttlValues.length > 0 ? Math.min(...ttlValues) : CACHE_TTL_SECONDS;
 
-    res.status(200).json({ satellites, generatedAt: now, forced: force, cacheExpiresInSeconds });
+    res.status(200).json({ satellites, generatedAt: now, forced: force, cacheExpiresInSeconds, env: ENV });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
