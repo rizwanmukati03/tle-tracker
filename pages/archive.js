@@ -18,6 +18,76 @@ function downloadTleText(filename, content) {
   URL.revokeObjectURL(url);
 }
 
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function totalEntriesLabel(count) {
+  return `${count} entr${count === 1 ? "y" : "ies"}`;
+}
+
+function BackupSection() {
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [backupErr, setBackupErr] = useState(null);
+  const [lastBackupCount, setLastBackupCount] = useState(null);
+
+  const handleBackup = useCallback(async () => {
+    setBackupLoading(true);
+    setBackupErr(null);
+    try {
+      const results = await Promise.all(
+        SATELLITES.map(async (sat) => {
+          const res = await fetch(`/api/archive?norad=${sat.norad}&limit=5000`);
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || `Failed for ${sat.name}`);
+          return { norad: sat.norad, name: sat.name, entries: json.entries };
+        })
+      );
+
+      const totalEntries = results.reduce((sum, r) => sum + r.entries.length, 0);
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        source: "LEO Asset Tracker — full archive backup",
+        satellites: results,
+      };
+
+      const dateTag = new Date().toISOString().slice(0, 10);
+      downloadJson(`leo_tracker_archive_backup_${dateTag}.json`, backup);
+      setLastBackupCount(totalEntries);
+    } catch (e) {
+      setBackupErr(e.message);
+    } finally {
+      setBackupLoading(false);
+    }
+  }, []);
+
+  return (
+    <div className={styles.backupPanel}>
+      <div className={styles.backupHeader}>
+        <span className={styles.backupTitle}>🛡 Full archive backup</span>
+        <span className={styles.backupSubtitle}>
+          Every entry, every satellite, no date filter — an independent copy you hold yourself.
+        </span>
+      </div>
+      <button className={styles.backupBtn} onClick={handleBackup} disabled={backupLoading}>
+        {backupLoading ? "Exporting…" : "↓ Download full backup (.json)"}
+      </button>
+      {backupErr && <div className={styles.backupError}>{backupErr}</div>}
+      {lastBackupCount !== null && !backupErr && (
+        <div className={styles.backupSuccess}>
+          ✓ Exported {totalEntriesLabel(lastBackupCount)} across all 7 satellites.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ArchivePage() {
   const [selectedNorad, setSelectedNorad] = useState(SATELLITES[0].norad);
   const [fromDateTime, setFromDateTime] = useState("");
@@ -74,6 +144,8 @@ export default function ArchivePage() {
 
       <h2 className={styles.pageTitle}>📜 TLE archive</h2>
       <p className={styles.pageSubtitle}>Look up a satellite&apos;s recorded orbital data over time.</p>
+
+      <BackupSection />
 
       <div className={styles.searchPanel}>
         <div className={styles.filterRow}>
