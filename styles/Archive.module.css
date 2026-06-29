@@ -47,6 +47,18 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
+.dateInput::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.75;
+  padding: 4px;
+  border-radius: 4px;
+}
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .searchBtn {
   background: linear-gradient(135deg, #0055cc, #00aaff);
   color: #fff;
