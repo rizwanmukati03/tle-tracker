@@ -18,6 +18,63 @@
   margin-bottom: 24px;
 }
 
+.backupPanel {
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.backupHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.backupTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #e8f0fe;
+}
+
+.backupSubtitle {
+  font-size: 0.7rem;
+  color: #7ab0d4;
+}
+
+.backupBtn {
+  background: transparent;
+  border: 1.5px solid #00d4ff;
+  color: #00d4ff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.backupBtn:hover:not(:disabled) { background: #00d4ff; color: #060b14; }
+.backupBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.backupError {
+  color: #ff8a80;
+  font-size: 0.74rem;
+  width: 100%;
+}
+
+.backupSuccess {
+  color: #00e676;
+  font-size: 0.74rem;
+  width: 100%;
+}
+
 .filterRow {
   display: flex;
   align-items: flex-end;
