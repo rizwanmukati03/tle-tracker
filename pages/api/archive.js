@@ -15,7 +15,10 @@ export default async function handler(req, res) {
   const key = `tle_archive_${norad}`;
   const minScore = from ? Number(from) : "-inf";
   const maxScore = to ? Number(to) : "+inf";
-  const count = limit ? Math.min(parseInt(limit, 10), 500) : 50;
+  // Raised from 500 to 5000 to support full, unfiltered backups —
+  // comfortably covers well over a decade of history per satellite
+  // at current archiving rates.
+  const count = limit ? Math.min(parseInt(limit, 10), 5000) : 50;
 
   try {
     const raw = await redis.zrange(key, maxScore, minScore, {
@@ -31,8 +34,6 @@ export default async function handler(req, res) {
       const member = raw[i];
       const score = raw[i + 1];
       const parsed = typeof member === "string" ? JSON.parse(member) : member;
-      // score is the epoch timestamp (or fetchedAt as fallback for older entries
-      // archived before epoch-based scoring existed)
       entries.push({ ...parsed, epochMs: Number(score) });
     }
 
