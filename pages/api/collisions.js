@@ -3,6 +3,9 @@ import { Redis } from "@upstash/redis";
 
 const redis = Redis.fromEnv();
 
+// Keep dev (Preview) and production data completely separate.
+const ENV = process.env.VERCEL_ENV === "production" ? "prod" : "dev";
+
 const SATELLITES = [
   { name: "PRSC-EO1", norad: 62726 },
   { name: "PRSC-EO2", norad: 67748 },
@@ -137,7 +140,7 @@ function riskLevel(minRangeKm) {
 }
 
 async function getConjunctionsForSat(norad, force = false) {
-  const cacheKey = `conj_${norad}`;
+  const cacheKey = `${ENV}_conj_${norad}`;
 
   if (!force) {
     const cached = parseCached(await redis.get(cacheKey));
@@ -163,7 +166,7 @@ export default async function handler(req, res) {
   const now = Date.now();
 
   if (force) {
-    const cooldownKey = "collisions_last_force_fetch";
+    const cooldownKey = `${ENV}_collisions_last_force_fetch`;
     const lastForceRaw = await redis.get(cooldownKey);
     const lastForce = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
 
@@ -192,7 +195,7 @@ export default async function handler(req, res) {
       return { ...SATELLITES[i], error: r.reason?.message || "Failed to fetch", conjunctions: [] };
     });
 
-    res.status(200).json({ satellites, generatedAt: now, forced: force });
+    res.status(200).json({ satellites, generatedAt: now, forced: force, env: ENV });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
