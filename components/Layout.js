@@ -13,7 +13,6 @@ const NAV_ITEMS = [
 export default function Layout({ children }) {
   // true = sidebar expanded (desktop: full width; mobile: drawer open)
   const [open, setOpen] = useState(true);
-  const [criticalSats, setCriticalSats] = useState([]);
   const router = useRouter();
 
   // Default to closed on mobile after mount, so the drawer doesn't
@@ -28,21 +27,6 @@ export default function Layout({ children }) {
   }, [router.pathname]);
 
   const toggle = useCallback(() => setOpen(o => !o), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/collisions")
-      .then(res => res.json())
-      .then(json => {
-        if (cancelled) return;
-        const crit = json.satellites?.filter(s =>
-          s.conjunctions?.some(c => c.risk === "critical")
-        ) || [];
-        setCriticalSats(crit);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
   return (
     <div className={styles.shell}>
@@ -97,14 +81,6 @@ export default function Layout({ children }) {
             </div>
           </div>
         </header>
-
-        {criticalSats.length > 0 && (
-          <div className={styles.criticalBanner}>
-            <span className={styles.criticalBannerIcon}>⚠</span>
-            {criticalSats.length} satellite{criticalSats.length > 1 ? "s" : ""} at critical collision risk &mdash;{" "}
-            {criticalSats.map(s => s.name).join(", ")}
-          </div>
-        )}
 
         <main className={styles.content}>{children}</main>
 
