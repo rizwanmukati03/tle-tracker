@@ -1,5 +1,5 @@
 // components/Layout.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Layout.module.css";
@@ -11,9 +11,23 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // true = sidebar expanded (desktop: full width; mobile: drawer open)
+  const [open, setOpen] = useState(true);
   const [criticalSats, setCriticalSats] = useState([]);
   const router = useRouter();
+
+  // Default to closed on mobile after mount, so the drawer doesn't
+  // cover the screen on first load. Desktop keeps its expanded default.
+  useEffect(() => {
+    if (window.innerWidth < 700) setOpen(false);
+  }, []);
+
+  // Close the mobile drawer automatically after navigating to a new page.
+  useEffect(() => {
+    if (window.innerWidth < 700) setOpen(false);
+  }, [router.pathname]);
+
+  const toggle = useCallback(() => setOpen(o => !o), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,12 +46,23 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.shell}>
-      <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ""}`}>
+      {/* Mobile-only top bar — always visible so the drawer can always be reopened */}
+      <div className={styles.mobileTopBar}>
+        <button className={styles.mobileHamburgerBtn} onClick={toggle} aria-label="Toggle menu">
+          ☰
+        </button>
+        <span className={styles.mobileLogoText}>LEO Tracker</span>
+      </div>
+
+      {/* Backdrop, mobile only, closes drawer on tap */}
+      {open && <div className={styles.backdrop} onClick={() => setOpen(false)} aria-hidden="true" />}
+
+      <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.sidebarHeader}>
           <button
             className={styles.hamburgerBtn}
-            onClick={() => setCollapsed(c => !c)}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={toggle}
+            aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
           >
             ☰
           </button>
@@ -50,7 +75,7 @@ export default function Layout({ children }) {
               key={item.href}
               href={item.href}
               className={`${styles.navItem} ${router.pathname === item.href ? styles.navItemActive : ""}`}
-              title={collapsed ? item.label : undefined}
+              title={!open ? item.label : undefined}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{item.label}</span>
