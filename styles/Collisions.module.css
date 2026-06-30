@@ -4,6 +4,22 @@
   margin-bottom: 6px;
 }
 
+.criticalBanner {
+  background: rgba(255,82,82,0.08);
+  border: 1px solid rgba(255,82,82,0.25);
+  border-radius: 10px;
+  color: #ff8a80;
+  padding: 12px 18px;
+  text-align: center;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.criticalBannerIcon { font-size: 1rem; }
+
 .pageSubtitle {
   font-size: 0.8rem;
   color: #7ab0d4;
