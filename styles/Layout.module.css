@@ -7,9 +7,35 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
+/* ── Mobile top bar (hidden on desktop) ── */
+.mobileTopBar {
+  display: none;
+}
+
+.mobileHamburgerBtn {
+  background: none;
+  border: none;
+  color: #00d4ff;
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 8px;
+}
+
+.mobileLogoText {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ── Backdrop (mobile only) ── */
+.backdrop {
+  display: none;
+}
+
 /* ── Sidebar ── */
 .sidebar {
-  width: 212px;
+  width: 240px;
   background: #080e1a;
   border-right: 1px solid #1a2740;
   display: flex;
@@ -19,17 +45,17 @@
   transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebarCollapsed {
-  width: 62px;
+.sidebarClosed {
+  width: 68px;
 }
 
 .sidebarHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 18px 16px;
+  gap: 12px;
+  padding: 20px 18px;
   border-bottom: 1px solid #1a2740;
-  min-height: 58px;
+  min-height: 64px;
 }
 
 .hamburgerBtn {
@@ -43,7 +69,7 @@
   justify-content: center;
   flex-shrink: 0;
   border-radius: 6px;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   line-height: 1;
   transition: background 0.18s ease, color 0.18s ease, transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -54,39 +80,39 @@
 .hamburgerBtn:active {
   transform: scale(0.88);
 }
-.sidebarCollapsed .hamburgerBtn {
+.sidebarClosed .hamburgerBtn {
   transform: rotate(180deg);
 }
-.sidebarCollapsed .hamburgerBtn:active {
+.sidebarClosed .hamburgerBtn:active {
   transform: rotate(180deg) scale(0.88);
 }
 
 .logoText {
   color: #fff;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 1rem;
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.2s ease 0.05s;
 }
-.sidebarCollapsed .logoText {
+.sidebarClosed .logoText {
   opacity: 0;
   transition: opacity 0.12s ease;
 }
 
 .nav {
-  padding: 12px 8px;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 9px;
   color: #7ab0d4;
   text-decoration: none;
   white-space: nowrap;
@@ -102,24 +128,24 @@
 }
 
 .navIcon {
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
-  width: 22px;
+  width: 26px;
   text-align: center;
   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.sidebarCollapsed .navIcon {
+.sidebarClosed .navIcon {
   transform: scale(1.15);
 }
 
 .navLabel {
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   font-weight: 600;
   opacity: 1;
   transform: translateX(0);
   transition: opacity 0.2s ease 0.08s, transform 0.2s ease 0.08s;
 }
-.sidebarCollapsed .navLabel {
+.sidebarClosed .navLabel {
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity 0.12s ease, transform 0.12s ease;
@@ -152,7 +178,7 @@
 .headerText { flex: 1; }
 
 .title {
-  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-size: clamp(1.4rem, 3.5vw, 2.1rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -261,11 +287,68 @@
   letter-spacing: 0.03em;
 }
 
+/* ════════════════════════════════════════
+   MOBILE — sidebar becomes an off-canvas
+   overlay drawer, opened via a fixed top bar
+   ════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .shell { flex-direction: column; }
-  .sidebar { width: 100% !important; flex-direction: row; border-right: none; border-bottom: 1px solid #1a2740; }
-  .sidebarHeader { border-bottom: none; border-right: 1px solid #1a2740; }
-  .nav { flex-direction: row; padding: 8px; flex: 1; overflow-x: auto; }
+  .shell {
+    flex-direction: column;
+  }
+
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #080e1a;
+    border-bottom: 1px solid #1a2740;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 40;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78vw;
+    max-width: 300px;
+    z-index: 50;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .sidebarClosed {
+    width: 78vw;
+    max-width: 300px;
+    transform: translateX(-100%);
+  }
+
+  /* On mobile, labels/icons should NOT shrink to icon-rail mode —
+     when the drawer is open it should always show full nav text. */
+  .sidebarClosed .logoText,
+  .sidebarClosed .navLabel {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .sidebarClosed .navIcon {
+    transform: none;
+  }
+
   .header { padding: 18px 16px; }
   .headerCredit { align-items: flex-start; }
   .content { padding: 24px 14px; }
