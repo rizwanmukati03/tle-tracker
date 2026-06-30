@@ -183,11 +183,23 @@ export default function CollisionsPage() {
     fetchCollisions();
   }, [fetchCollisions]);
 
+  const criticalSats = collisionData?.satellites?.filter(s =>
+    s.conjunctions?.some(c => c.risk === "critical")
+  ) || [];
+
   return (
     <>
       <Head>
         <title>Collision Risk — LEO Asset Tracker</title>
       </Head>
+
+      {criticalSats.length > 0 && (
+        <div className={styles.criticalBanner}>
+          <span className={styles.criticalBannerIcon}>⚠</span>
+          {criticalSats.length} satellite{criticalSats.length > 1 ? "s" : ""} at critical collision risk &mdash;{" "}
+          {criticalSats.map(s => s.name).join(", ")}
+        </div>
+      )}
 
       <h2 className={styles.pageTitle}>◎ Collision risk</h2>
       <p className={styles.pageSubtitle}>
