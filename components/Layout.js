@@ -95,10 +95,6 @@ export default function Layout({ children }) {
               <h1 className={styles.title}>LEO Asset Tracker</h1>
               <p className={styles.subtitle}>Live TLE Data &middot; Orbital Elements Tracker</p>
             </div>
-            <div className={styles.headerCredit}>
-              <span className={styles.creditLabel}>Initiated &amp; Developed by</span>
-              <span className={styles.creditName}>Rizwan Mukati</span>
-            </div>
           </div>
         </header>
 
