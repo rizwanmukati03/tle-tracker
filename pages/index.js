@@ -36,7 +36,7 @@ function SatelliteCard({ sat }) {
   const [copied, setCopied] = useState(false);
 
   const tleFull = sat.line1 && sat.line2
-    ? `${sat.name || `NORAD-${sat.norad}`}\n${sat.line1}\n${sat.line2}`
+    ? `${sat.line1}\n${sat.line2}`
     : null;
 
   const handleCopy = async () => {
@@ -79,11 +79,9 @@ function SatelliteCard({ sat }) {
         <>
           <div className={styles.tleBlock}>
             <div className={styles.tleLine}>
-              <span className={styles.lineTag}>L1</span>
               <code>{sat.line1}</code>
             </div>
             <div className={styles.tleLine}>
-              <span className={styles.lineTag}>L2</span>
               <code>{sat.line2}</code>
             </div>
           </div>
