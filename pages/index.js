@@ -48,7 +48,8 @@ function SatelliteCard({ sat }) {
 
   const handleDownload = () => {
     if (!tleFull) return;
-    const blob = new Blob([tleFull], { type: "text/plain" });
+    const downloadContent = `${sat.name || `NORAD-${sat.norad}`}\n${sat.line1}\n${sat.line2}`;
+    const blob = new Blob([downloadContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
