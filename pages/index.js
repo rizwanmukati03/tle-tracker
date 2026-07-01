@@ -142,7 +142,7 @@ function SatelliteCard({ sat, customName, onRename }) {
           ) : (
             <span className={styles.satNameWrap}>
               <span className={styles.satName}>{displayName}</span>
-              <button className={styles.pencilBtn} onClick={startEdit} title="Edit satellite name">✏</button>
+              <button className={styles.pencilBtn} onClick={startEdit} title="Edit satellite name">✎</button>
             </span>
           )}
         </div>
