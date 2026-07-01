@@ -88,6 +88,46 @@ function BackupSection() {
   );
 }
 
+function ArchiveEntry({ entry }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(`${entry.line1}\n${entry.line2}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className={styles.entry}>
+      <div className={styles.entryHeader}>
+        <span className={styles.entryDate}>{formatArchiveDate(entry.epochMs ?? entry.fetchedAt)}</span>
+        <span className={styles.entrySource}>via {entry.source}</span>
+      </div>
+      <div className={styles.entryTle}>
+        <code>{entry.line1}</code>
+        <code>{entry.line2}</code>
+      </div>
+      <div className={styles.entryFooter}>
+        <span className={styles.entryCaptured}>captured {formatArchiveDate(entry.fetchedAt)}</span>
+        <div className={styles.entryActions}>
+          <button className={styles.copyOneBtn} onClick={handleCopy}>
+            {copied ? "✓ Copied" : "Copy TLE"}
+          </button>
+          <button className={styles.downloadOneBtn} onClick={() => {
+            const dateTag = new Date(entry.epochMs ?? entry.fetchedAt).toISOString().slice(0, 10);
+            downloadTleText(
+              `${dateTag}.tle`,
+              `${entry.line1}\n${entry.line2}`
+            );
+          }}>
+            ↓ Download .tle
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ArchivePage() {
   const [selectedNorad, setSelectedNorad] = useState(SATELLITES[0].norad);
   const [fromDateTime, setFromDateTime] = useState("");
@@ -116,19 +156,11 @@ export default function ArchivePage() {
     }
   }, [selectedNorad, fromDateTime, toDateTime]);
 
-  const handleDownloadOne = (entry) => {
-    const dateTag = new Date(entry.epochMs ?? entry.fetchedAt).toISOString().slice(0, 10);
-    downloadTleText(
-      `${selectedNorad}_${dateTag}.tle`,
-      `${entry.name || selectedNorad}\n${entry.line1}\n${entry.line2}`
-    );
-  };
-
   const handleDownloadAll = () => {
     if (!results || results.length === 0) return;
     const satName = SATELLITES.find(s => s.norad === Number(selectedNorad))?.name || selectedNorad;
     const content = results
-      .map(e => `${e.name || satName}\n${e.line1}\n${e.line2}`)
+      .map(e => `${e.line1}\n${e.line2}`)
       .join("\n");
     downloadTleText(`${satName}_archive.tle`, content);
   };
@@ -205,22 +237,7 @@ export default function ArchivePage() {
 
           <div className={styles.resultsList}>
             {visibleResults.map((entry, i) => (
-              <div key={i} className={styles.entry}>
-                <div className={styles.entryHeader}>
-                  <span className={styles.entryDate}>{formatArchiveDate(entry.epochMs ?? entry.fetchedAt)}</span>
-                  <span className={styles.entrySource}>via {entry.source}</span>
-                </div>
-                <div className={styles.entryTle}>
-                  <code>{entry.line1}</code>
-                  <code>{entry.line2}</code>
-                </div>
-                <div className={styles.entryFooter}>
-                  <span className={styles.entryCaptured}>captured {formatArchiveDate(entry.fetchedAt)}</span>
-                  <button className={styles.downloadOneBtn} onClick={() => handleDownloadOne(entry)}>
-                    ↓ Download .tle
-                  </button>
-                </div>
-              </div>
+              <ArchiveEntry key={i} entry={entry} />
             ))}
           </div>
 
