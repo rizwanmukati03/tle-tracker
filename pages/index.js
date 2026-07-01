@@ -46,14 +46,14 @@ function SatelliteCard({ sat }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
+  const handleDownload = (ext) => {
     if (!tleFull) return;
     const downloadContent = `${sat.name || `NORAD-${sat.norad}`}\n${sat.line1}\n${sat.line2}`;
     const blob = new Blob([downloadContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${sat.norad}.tle`;
+    a.download = `${sat.norad}.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -106,8 +106,11 @@ function SatelliteCard({ sat }) {
             <button className={styles.btnSecondary} onClick={handleCopy}>
               {copied ? "✓ Copied" : "Copy TLE"}
             </button>
-            <button className={styles.btnPrimary} onClick={handleDownload}>
+            <button className={styles.btnPrimary} onClick={() => handleDownload("tle")}>
               ↓ Download .tle
+            </button>
+            <button className={styles.btnSecondary} onClick={() => handleDownload("txt")}>
+              ↓ Download .txt
             </button>
           </div>
         </>
