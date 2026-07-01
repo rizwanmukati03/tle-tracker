@@ -213,7 +213,7 @@
   font-size: 0.76rem;
   color: #90caf9;
   letter-spacing: 0.03em;
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .epochRow {
@@ -293,11 +293,199 @@
 .actions {
   display: flex;
   gap: 8px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
+/* ── Name editing ── */
+.satNameWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pencilBtn {
+  background: none;
+  border: none;
+  color: #4a6a8a;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 2px 4px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  line-height: 1;
+  border-radius: 3px;
+}
+.satNameWrap:hover .pencilBtn { opacity: 1; color: #7ab0d4; }
+.pencilBtn:focus { opacity: 1; color: #7ab0d4; outline: none; }
+
+.nameEditRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nameInput {
+  background: #050a10;
+  border: 1px solid #00d4ff;
+  color: #e8f0fe;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 0.85rem;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  width: 150px;
+  outline: none;
+}
+
+.nameEditSave {
+  background: rgba(0,230,118,0.12);
+  color: #00e676;
+  border: 1px solid rgba(0,230,118,0.3);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0;
+}
+.nameEditSave:hover { background: rgba(0,230,118,0.22); }
+
+.nameEditCancel {
+  background: rgba(255,82,82,0.1);
+  color: #ff8a80;
+  border: 1px solid rgba(255,82,82,0.25);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0;
+}
+.nameEditCancel:hover { background: rgba(255,82,82,0.2); }
+
+/* ── Download dropdown ── */
+.downloadWrapper {
+  position: relative;
+}
+
+.btnDownloadSolid {
+  background: linear-gradient(135deg, #004a9f, #0077cc);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btnDownloadSolid:hover { opacity: 0.88; transform: translateY(-1px); }
+.btnDownloadSolid:active { transform: translateY(0); }
+
+.btnDownloadOutline {
+  background: transparent;
+  border: 1.5px solid #00d4ff;
+  color: #00d4ff;
+  border-radius: 9px;
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.btnDownloadOutline:hover { background: #00d4ff; color: #060b14; transform: translateY(-1px); }
+.btnDownloadOutline:active { transform: translateY(0); }
+
+.menuChevron {
+  font-size: 0.55rem;
+  opacity: 0.75;
+}
+
+.downloadMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #111927;
+  border: 1px solid #1e2d42;
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 185px;
+  z-index: 200;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  animation: menuIn 0.13s ease;
+}
+
+/* For the "Download All" outline button at page bottom — menu opens upward */
+.downloadMenuUp {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.downloadMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: #e8f0fe;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.downloadMenuItem:hover { background: #1a2a3a; }
+
+.menuExt {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #00d4ff;
+  min-width: 34px;
+}
+
+.menuLabel {
+  color: #b0c4d8;
+  font-size: 0.8rem;
+}
+
+.downloadMenuBoth {
+  color: #7ab0d4;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.menuDivider {
+  height: 1px;
+  background: #1e2d42;
+  margin: 4px 6px;
+}
+
 .btnSecondary, .btnPrimary {
-  flex: 1;
   padding: 9px 14px;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -305,6 +493,7 @@
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
   border: none;
+  white-space: nowrap;
 }
 
 .btnSecondary {
