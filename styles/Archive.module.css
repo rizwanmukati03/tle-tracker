@@ -265,6 +265,24 @@
   transition: background 0.15s;
 }
 .loadMoreBtn:hover { background: #11203a; }
+.entryActions {
+  display: flex;
+  gap: 8px;
+}
+
+.copyOneBtn {
+  background: #0d1a2a;
+  color: #90caf9;
+  border: 1px solid #1a2740;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.copyOneBtn:hover { background: #11203a; }
+
 
 @media (max-width: 600px) {
   .filterRow { flex-direction: column; align-items: stretch; }
