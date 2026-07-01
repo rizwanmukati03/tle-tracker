@@ -185,11 +185,12 @@
 }
 
 .subtitle {
-  font-size: 0.75rem;
-  color: #5a7a9a;
-  margin-top: 4px;
-  letter-spacing: 0.06em;
+  font-size: 0.82rem;
+  color: #8ab8d8;
+  margin-top: 5px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 .headerCredit {
