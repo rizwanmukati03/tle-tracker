@@ -1,5 +1,5 @@
 // pages/archive.js
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import styles from "../styles/Archive.module.css";
 import { SATELLITES } from "../lib/satellites";
@@ -8,7 +8,7 @@ function formatArchiveDate(ms) {
   return new Date(ms).toUTCString().replace("GMT", "UTC");
 }
 
-function downloadTleText(filename, content) {
+function triggerDownload(filename, content) {
   const blob = new Blob([content], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -32,6 +32,49 @@ function totalEntriesLabel(count) {
   return `${count} entr${count === 1 ? "y" : "ies"}`;
 }
 
+// Shared dropdown download button
+function DownloadMenu({ onSelect, variant = "solid", label = "↓ Download" }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useState(null);
+  const ref = { current: null };
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div className={styles.downloadWrapper} ref={el => { ref.current = el; }}>
+      <button
+        className={variant === "outline" ? styles.btnDownloadOutline : styles.btnDownloadSolid}
+        onClick={() => setOpen(o => !o)}
+      >
+        {label} <span className={styles.menuChevron}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className={`${styles.downloadMenu} ${variant === "outline" ? styles.downloadMenuUp : ""}`}>
+          <button className={styles.downloadMenuItem} onClick={() => { onSelect("tle"); setOpen(false); }}>
+            <span className={styles.menuExt}>.tle</span>
+            <span className={styles.menuLabel}>TLE format</span>
+          </button>
+          <button className={styles.downloadMenuItem} onClick={() => { onSelect("txt"); setOpen(false); }}>
+            <span className={styles.menuExt}>.txt</span>
+            <span className={styles.menuLabel}>Text format</span>
+          </button>
+          <div className={styles.menuDivider} />
+          <button className={`${styles.downloadMenuItem} ${styles.downloadMenuBoth}`} onClick={() => { onSelect("both"); setOpen(false); }}>
+            ↓ &nbsp;Download both formats
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BackupSection() {
   const [backupLoading, setBackupLoading] = useState(false);
   const [backupErr, setBackupErr] = useState(null);
@@ -49,14 +92,12 @@ function BackupSection() {
           return { norad: sat.norad, name: sat.name, entries: json.entries };
         })
       );
-
       const totalEntries = results.reduce((sum, r) => sum + r.entries.length, 0);
       const backup = {
         exportedAt: new Date().toISOString(),
         source: "LEO Asset Tracker — full archive backup",
         satellites: results,
       };
-
       const dateTag = new Date().toISOString().slice(0, 10);
       downloadJson(`leo_tracker_archive_backup_${dateTag}.json`, backup);
       setLastBackupCount(totalEntries);
@@ -88,13 +129,22 @@ function BackupSection() {
   );
 }
 
-function ArchiveEntry({ entry }) {
+function ArchiveEntry({ entry, satName }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(`${entry.line1}\n${entry.line2}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = (format) => {
+    const content = `${satName}\n${entry.line1}\n${entry.line2}`;
+    const dateTag = new Date(entry.epochMs ?? entry.fetchedAt).toISOString().slice(0, 10);
+    const dl = (ext) => triggerDownload(`${dateTag}.${ext}`, content);
+    if (format === "tle") dl("tle");
+    else if (format === "txt") dl("txt");
+    else { dl("tle"); setTimeout(() => dl("txt"), 300); }
   };
 
   return (
@@ -113,15 +163,7 @@ function ArchiveEntry({ entry }) {
           <button className={styles.copyOneBtn} onClick={handleCopy}>
             {copied ? "✓ Copied" : "Copy TLE"}
           </button>
-          <button className={styles.downloadOneBtn} onClick={() => {
-            const dateTag = new Date(entry.epochMs ?? entry.fetchedAt).toISOString().slice(0, 10);
-            downloadTleText(
-              `${dateTag}.tle`,
-              `${entry.line1}\n${entry.line2}`
-            );
-          }}>
-            ↓ Download .tle
-          </button>
+          <DownloadMenu onSelect={handleDownload} variant="solid" label="↓ Download" />
         </div>
       </div>
     </div>
@@ -136,6 +178,20 @@ export default function ArchivePage() {
   const [visibleCount, setVisibleCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [customNames, setCustomNames] = useState({});
+
+  // Load custom satellite names set on the Dashboard
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("leo_satellite_names");
+      if (stored) setCustomNames(JSON.parse(stored));
+    } catch {}
+  }, []);
+
+  const getSatName = (norad) => {
+    const sat = SATELLITES.find(s => s.norad === Number(norad));
+    return customNames[norad] || sat?.name || `NORAD-${norad}`;
+  };
 
   const handleSearch = useCallback(async () => {
     setLoading(true);
@@ -156,23 +212,25 @@ export default function ArchivePage() {
     }
   }, [selectedNorad, fromDateTime, toDateTime]);
 
-  const handleDownloadAll = () => {
+  const handleDownloadAll = (format) => {
     if (!results || results.length === 0) return;
-    const satName = SATELLITES.find(s => s.norad === Number(selectedNorad))?.name || selectedNorad;
+    const satName = getSatName(selectedNorad);
     const content = results
-      .map(e => `${e.line1}\n${e.line2}`)
+      .map(e => `${satName}\n${e.line1}\n${e.line2}`)
       .join("\n");
-    downloadTleText(`${satName}_archive.tle`, content);
+    const dl = (ext) => triggerDownload(`${satName}_archive.${ext}`, content);
+    if (format === "tle") dl("tle");
+    else if (format === "txt") dl("txt");
+    else { dl("tle"); setTimeout(() => dl("txt"), 300); }
   };
 
   const visibleResults = results ? results.slice(0, visibleCount) : [];
   const remaining = results ? results.length - visibleCount : 0;
+  const currentSatName = getSatName(selectedNorad);
 
   return (
     <>
-      <Head>
-        <title>TLE Archive — LEO Asset Tracker</title>
-      </Head>
+      <Head><title>TLE Archive — LEO Asset Tracker</title></Head>
 
       <h2 className={styles.pageTitle}>📜 TLE archive</h2>
       <p className={styles.pageSubtitle}>Look up a satellite&apos;s recorded orbital data over time.</p>
@@ -189,31 +247,20 @@ export default function ArchivePage() {
               onChange={e => setSelectedNorad(Number(e.target.value))}
             >
               {SATELLITES.map(s => (
-                <option key={s.norad} value={s.norad}>{s.name} (NORAD {s.norad})</option>
+                <option key={s.norad} value={s.norad}>
+                  {customNames[s.norad] || s.name} (NORAD {s.norad})
+                </option>
               ))}
             </select>
           </label>
-
           <label className={styles.filterLabel}>
             From (UTC)
-            <input
-              type="datetime-local"
-              className={styles.dateInput}
-              value={fromDateTime}
-              onChange={e => setFromDateTime(e.target.value)}
-            />
+            <input type="datetime-local" className={styles.dateInput} value={fromDateTime} onChange={e => setFromDateTime(e.target.value)} />
           </label>
-
           <label className={styles.filterLabel}>
             To (UTC)
-            <input
-              type="datetime-local"
-              className={styles.dateInput}
-              value={toDateTime}
-              onChange={e => setToDateTime(e.target.value)}
-            />
+            <input type="datetime-local" className={styles.dateInput} value={toDateTime} onChange={e => setToDateTime(e.target.value)} />
           </label>
-
           <button className={styles.searchBtn} onClick={handleSearch} disabled={loading}>
             {loading ? "Searching…" : "Search"}
           </button>
@@ -230,14 +277,12 @@ export default function ArchivePage() {
         <>
           <div className={styles.resultsHeader}>
             <span>{results.length} entr{results.length === 1 ? "y" : "ies"} found</span>
-            <button className={styles.downloadAllBtn} onClick={handleDownloadAll}>
-              ↓ Download all ({results.length})
-            </button>
+            <DownloadMenu onSelect={handleDownloadAll} variant="outline" label={`↓ Download all (${results.length})`} />
           </div>
 
           <div className={styles.resultsList}>
             {visibleResults.map((entry, i) => (
-              <ArchiveEntry key={i} entry={entry} />
+              <ArchiveEntry key={i} entry={entry} satName={currentSatName} />
             ))}
           </div>
 
