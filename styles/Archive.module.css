@@ -223,7 +223,7 @@
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
   color: #90caf9;
-  white-space: nowrap;
+  white-space: pre; /* preserves exact TLE spacing when user manually copies */
 }
 
 .entryFooter {
@@ -238,6 +238,114 @@
   font-size: 0.62rem;
   color: #3a5a7a;
 }
+
+.entryActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.copyOneBtn {
+  background: #0d1a2a;
+  color: #90caf9;
+  border: 1px solid #1a2740;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.copyOneBtn:hover { background: #11203a; }
+
+/* ── Download dropdown (shared with Home.module.css pattern) ── */
+.downloadWrapper { position: relative; }
+
+.btnDownloadSolid {
+  background: linear-gradient(135deg, #004a9f, #0077cc);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.btnDownloadSolid:hover { opacity: 0.88; }
+
+.btnDownloadOutline {
+  background: transparent;
+  border: 1.5px solid #00d4ff;
+  color: #00d4ff;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.btnDownloadOutline:hover { background: #00d4ff; color: #060b14; }
+
+.menuChevron { font-size: 0.52rem; opacity: 0.75; }
+
+.downloadMenu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  background: #111927;
+  border: 1px solid #1e2d42;
+  border-radius: 10px;
+  padding: 5px;
+  min-width: 178px;
+  z-index: 200;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  animation: menuInA 0.12s ease;
+}
+.downloadMenuUp {
+  top: auto;
+  bottom: calc(100% + 5px);
+}
+@keyframes menuInA {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.downloadMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 11px;
+  color: #e8f0fe;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.downloadMenuItem:hover { background: #1a2a3a; }
+.menuExt {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #00d4ff;
+  min-width: 32px;
+}
+.menuLabel { color: #b0c4d8; font-size: 0.78rem; }
+.downloadMenuBoth { color: #7ab0d4; font-size: 0.78rem; font-style: italic; }
+.menuDivider { height: 1px; background: #1e2d42; margin: 4px 5px; }
 
 .downloadOneBtn {
   background: #0d1a2a;
@@ -265,24 +373,6 @@
   transition: background 0.15s;
 }
 .loadMoreBtn:hover { background: #11203a; }
-.entryActions {
-  display: flex;
-  gap: 8px;
-}
-
-.copyOneBtn {
-  background: #0d1a2a;
-  color: #90caf9;
-  border: 1px solid #1a2740;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.copyOneBtn:hover { background: #11203a; }
-
 
 @media (max-width: 600px) {
   .filterRow { flex-direction: column; align-items: stretch; }
