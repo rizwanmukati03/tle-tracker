@@ -18,7 +18,7 @@ const SATELLITES = [
 ];
 
 const CACHE_TTL_SECONDS = 6 * 60 * 60;
-const FORCE_COOLDOWN_SECONDS = 10 * 60;
+const FORCE_COOLDOWN_SECONDS = 60 * 60;
 
 function parseCached(raw) {
   if (!raw) return null;
