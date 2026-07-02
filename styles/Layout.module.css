@@ -41,8 +41,13 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Sticky: keeps sidebar in viewport regardless of page length */
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .sidebarClosed {
@@ -77,15 +82,9 @@
   background: rgba(0, 212, 255, 0.08);
   color: #00d4ff;
 }
-.hamburgerBtn:active {
-  transform: scale(0.88);
-}
-.sidebarClosed .hamburgerBtn {
-  transform: rotate(180deg);
-}
-.sidebarClosed .hamburgerBtn:active {
-  transform: rotate(180deg) scale(0.88);
-}
+.hamburgerBtn:active { transform: scale(0.88); }
+.sidebarClosed .hamburgerBtn { transform: rotate(180deg); }
+.sidebarClosed .hamburgerBtn:active { transform: rotate(180deg) scale(0.88); }
 
 .logoText {
   color: #fff;
@@ -134,9 +133,7 @@
   text-align: center;
   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.sidebarClosed .navIcon {
-  transform: scale(1.15);
-}
+.sidebarClosed .navIcon { transform: scale(1.15); }
 
 .navLabel {
   font-size: 0.92rem;
@@ -149,6 +146,43 @@
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+/* ── Sidebar developer credit ── */
+.sidebarCredit {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-top: 1px solid #1a2740;
+  overflow: hidden;
+}
+
+.sidebarCreditLabel {
+  display: block;
+  font-size: 0.58rem;
+  color: #4a6a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+.sidebarCreditName {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #00d4ff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+/* Hide credit text when sidebar is collapsed to icon-rail */
+.sidebarClosed .sidebarCreditLabel,
+.sidebarClosed .sidebarCreditName {
+  opacity: 0;
 }
 
 /* ── Main area ── */
@@ -193,6 +227,28 @@
   font-weight: 500;
 }
 
+/* Header credit — plain text under subtitle, no box/border/background */
+.headerCreditInline {
+  margin-top: 5px;
+  font-size: 0;
+}
+
+.headerCreditLabel {
+  font-size: 0.68rem;
+  color: #5a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 500;
+}
+
+.headerCreditName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #00d4ff;
+  letter-spacing: 0.01em;
+}
+
+/* Legacy box-style header credit (kept for reference, not used) */
 .headerCredit {
   display: flex;
   flex-direction: column;
@@ -204,14 +260,12 @@
   white-space: nowrap;
   margin-left: auto;
 }
-
 .creditLabel {
   font-size: 0.65rem;
   color: #5a7a9a;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-
 .creditName {
   font-size: 0.9rem;
   font-weight: 700;
@@ -220,6 +274,7 @@
   letter-spacing: 0.01em;
 }
 
+/* ── Orbit animation ── */
 .orbit {
   position: relative;
   width: 52px;
@@ -308,47 +363,11 @@
   font-style: normal;
 }
 
-/* ── Sidebar developer credit ── */
-.sidebarCredit {
-  margin-top: auto;
-  padding: 14px 16px;
-  border-top: 1px solid #1a2740;
-  overflow: hidden;
-}
-
-.sidebarCreditLabel {
-  display: block;
-  font-size: 0.58rem;
-  color: #4a6a8a;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 1;
-  transition: opacity 0.15s;
-}
-
-.sidebarCreditName {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #00d4ff;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 1;
-  transition: opacity 0.15s;
-}
-
-/* ════════════════════════════════════════
-   MOBILE — sidebar becomes an off-canvas
-   overlay drawer, opened via a fixed top bar
-   ════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   MOBILE — off-canvas overlay drawer
+   ═══════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .shell {
-    flex-direction: column;
-  }
+  .shell { flex-direction: column; }
 
   .mobileTopBar {
     display: flex;
@@ -377,39 +396,26 @@
     bottom: 0;
     width: 78vw;
     max-width: 300px;
+    height: 100vh;
     z-index: 50;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebarOpen {
-    transform: translateX(0);
-  }
-
+  .sidebarOpen  { transform: translateX(0); }
   .sidebarClosed {
     width: 78vw;
     max-width: 300px;
     transform: translateX(-100%);
   }
 
-  /* On mobile, labels/icons should NOT shrink to icon-rail mode —
-     when the drawer is open it should always show full nav text. */
+  /* On mobile the drawer always shows full text — never icon-only mode */
   .sidebarClosed .logoText,
-  .sidebarClosed .navLabel {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .sidebarClosed .navIcon {
-    transform: none;
-  }
+  .sidebarClosed .navLabel,
+  .sidebarClosed .sidebarCreditLabel,
+  .sidebarClosed .sidebarCreditName { opacity: 1; transform: translateX(0); }
+  .sidebarClosed .navIcon { transform: none; }
 
   .header { padding: 18px 16px; }
-  .headerCredit { align-items: flex-start; }
   .content { padding: 24px 14px; }
-}
-
-/* Collapsed desktop sidebar — hide credit text, keep spacing */
-.sidebarClosed .sidebarCreditLabel,
-.sidebarClosed .sidebarCreditName {
-  opacity: 0;
 }
