@@ -4,15 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Layout.module.css";
 
-// ── Developer credit ────────────────────────────────────────────────────────
-// To hide everywhere instantly: flip show to false and commit.
-// To restore: flip back to true. Both sidebar and footer update automatically.
+// ── Developer credit ─────────────────────────────────────────────────────────
+// show: false  →  hides ALL locations instantly (master switch)
+// showHeader   →  plain text top-right of the page header
+// showSidebar  →  pinned to the bottom of the left navigation
+// showFooter   →  right side of the page footer
 const DEV_CREDIT = {
-  show: true,
+  show:        true,
+  showHeader:  false,
+  showSidebar: true,
+  showFooter:  true,
   label: "Initiated & Developed by",
   name:  "Rizwan Mukati",
 };
-// ────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
   { href: "/",           label: "Dashboard",     icon: "📡" },
@@ -24,12 +29,10 @@ export default function Layout({ children }) {
   const [open, setOpen] = useState(true);
   const router = useRouter();
 
-  // Default closed on mobile so drawer doesn't cover screen on first load.
   useEffect(() => {
     if (window.innerWidth < 700) setOpen(false);
   }, []);
 
-  // Auto-close drawer after navigation on mobile.
   useEffect(() => {
     if (window.innerWidth < 700) setOpen(false);
   }, [router.pathname]);
@@ -47,8 +50,9 @@ export default function Layout({ children }) {
         <span className={styles.mobileLogoText}>LEO Tracker</span>
       </div>
 
-      {/* Mobile backdrop — tap to close drawer */}
-      {open && <div className={styles.backdrop} onClick={() => setOpen(false)} aria-hidden="true" />}
+      {open && (
+        <div className={styles.backdrop} onClick={() => setOpen(false)} aria-hidden="true" />
+      )}
 
       <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.sidebarHeader}>
@@ -76,8 +80,8 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* Sidebar credit — pinned to sidebar bottom, always in view */}
-        {DEV_CREDIT.show && (
+        {/* Sidebar credit — pinned at bottom, always visible without scrolling */}
+        {DEV_CREDIT.show && DEV_CREDIT.showSidebar && (
           <div className={styles.sidebarCredit}>
             <span className={styles.sidebarCreditLabel}>{DEV_CREDIT.label}</span>
             <span className={styles.sidebarCreditName}>{DEV_CREDIT.name}</span>
@@ -95,6 +99,14 @@ export default function Layout({ children }) {
             <div className={styles.headerText}>
               <h1 className={styles.title}>LEO Asset Tracker</h1>
               <p className={styles.subtitle}>Live TLE Data &middot; Orbital Elements Tracker</p>
+              {/* Header credit — sits under the subtitle as a third text line, no box */}
+              {DEV_CREDIT.show && DEV_CREDIT.showHeader && (
+                <p className={styles.headerCreditInline}>
+                  <span className={styles.headerCreditLabel}>{DEV_CREDIT.label}</span>
+                  {" "}
+                  <span className={styles.headerCreditName}>{DEV_CREDIT.name}</span>
+                </p>
+              )}
             </div>
           </div>
         </header>
@@ -105,9 +117,10 @@ export default function Layout({ children }) {
           <span className={styles.footerLeft}>
             Auto-refreshes every hour &middot; Celestrak &middot; n2yo &middot; SOCRATES &middot; TLE format per USSPACECOM
           </span>
-          {DEV_CREDIT.show && (
+          {DEV_CREDIT.show && DEV_CREDIT.showFooter && (
             <span className={styles.footerCredit}>
-              {DEV_CREDIT.label} <strong className={styles.footerCreditName}>{DEV_CREDIT.name}</strong>
+              {DEV_CREDIT.label}{" "}
+              <strong className={styles.footerCreditName}>{DEV_CREDIT.name}</strong>
             </span>
           )}
         </footer>
