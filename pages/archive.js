@@ -84,12 +84,24 @@ function BackupSection() {
     setBackupLoading(true);
     setBackupErr(null);
     try {
+      // Read custom names set on the Dashboard
+      let customNames = {};
+      try {
+        const stored = localStorage.getItem("leo_satellite_names");
+        if (stored) customNames = JSON.parse(stored);
+      } catch {}
+
       const results = await Promise.all(
         SATELLITES.map(async (sat) => {
           const res = await fetch(`/api/archive?norad=${sat.norad}&limit=5000`);
           const json = await res.json();
           if (!res.ok) throw new Error(json.error || `Failed for ${sat.name}`);
-          return { norad: sat.norad, name: sat.name, entries: json.entries };
+          return {
+            norad: sat.norad,
+            name: customNames[sat.norad] || sat.name,
+            defaultName: sat.name,
+            entries: json.entries,
+          };
         })
       );
       const totalEntries = results.reduce((sum, r) => sum + r.entries.length, 0);
