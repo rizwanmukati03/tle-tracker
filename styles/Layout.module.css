@@ -150,10 +150,14 @@
 
 /* ── Sidebar developer credit ── */
 .sidebarCredit {
+  position: sticky;
+  bottom: 0;
+  background: #080e1a;
   margin-top: auto;
   padding: 14px 16px;
   border-top: 1px solid #1a2740;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .sidebarCreditLabel {
