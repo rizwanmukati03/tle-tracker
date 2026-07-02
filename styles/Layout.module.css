@@ -42,7 +42,7 @@
   flex-direction: column;
   flex-shrink: 0;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
   transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   position: sticky;
   top: 0;
@@ -60,6 +60,7 @@
   padding: 20px 18px;
   border-bottom: 1px solid #1a2740;
   min-height: 64px;
+  flex-shrink: 0;
 }
 
 .hamburgerBtn {
@@ -100,11 +101,10 @@
 
 .nav {
   padding: 14px 10px;
+  padding-bottom: 80px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  flex: 1;
-  overflow-y: auto;
 }
 
 .navItem {
@@ -149,9 +149,16 @@
   transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
-/* ── Sidebar developer credit ── */
+/* ── Sidebar developer credit ──
+   Absolutely positioned at the bottom of the sidebar.
+   Works because sidebar is already positioned (sticky/fixed).
+   padding-bottom on .nav keeps nav items from hiding behind it. */
 .sidebarCredit {
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #080e1a;
   padding: 14px 16px;
   border-top: 1px solid #1a2740;
   overflow: hidden;
@@ -180,7 +187,6 @@
   transition: opacity 0.15s;
 }
 
-/* Hide credit text when sidebar is collapsed to icon-rail */
 .sidebarClosed .sidebarCreditLabel,
 .sidebarClosed .sidebarCreditName {
   opacity: 0;
@@ -228,7 +234,7 @@
   font-weight: 500;
 }
 
-/* Header credit — plain text under subtitle, no box/border/background */
+/* Header credit — plain text under subtitle, no box */
 .headerCreditInline {
   margin-top: 5px;
   font-size: 0;
@@ -249,7 +255,7 @@
   letter-spacing: 0.01em;
 }
 
-/* Legacy box-style header credit (kept for reference, not used) */
+/* Legacy box-style (not used) */
 .headerCredit {
   display: flex;
   flex-direction: column;
@@ -410,7 +416,6 @@
     transform: translateX(-100%);
   }
 
-  /* On mobile the drawer always shows full text — never icon-only mode */
   .sidebarClosed .logoText,
   .sidebarClosed .navLabel,
   .sidebarClosed .sidebarCreditLabel,
