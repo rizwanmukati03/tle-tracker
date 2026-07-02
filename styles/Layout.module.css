@@ -1,0 +1,427 @@
+/* ── Shell ── */
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: #060b14;
+  color: #e8f0fe;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ── Mobile top bar (hidden on desktop) ── */
+.mobileTopBar {
+  display: none;
+}
+
+.mobileHamburgerBtn {
+  background: none;
+  border: none;
+  color: #00d4ff;
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 8px;
+}
+
+.mobileLogoText {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ── Backdrop (mobile only) ── */
+.backdrop {
+  display: none;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  background: #080e1a;
+  border-right: 1px solid #1a2740;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebarClosed {
+  width: 68px;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px;
+  border-bottom: 1px solid #1a2740;
+  min-height: 64px;
+  flex-shrink: 0;
+}
+
+.hamburgerBtn {
+  background: none;
+  border: none;
+  color: #7ab0d4;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hamburgerBtn:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: #00d4ff;
+}
+.hamburgerBtn:active { transform: scale(0.88); }
+.sidebarClosed .hamburgerBtn { transform: rotate(180deg); }
+.sidebarClosed .hamburgerBtn:active { transform: rotate(180deg) scale(0.88); }
+
+.logoText {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s ease 0.05s;
+}
+.sidebarClosed .logoText {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.nav {
+  padding: 14px 10px;
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  color: #7ab0d4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.navItem:hover {
+  background: #0d1a2a;
+  color: #90caf9;
+}
+.navItemActive {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00d4ff;
+}
+
+.navIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 26px;
+  text-align: center;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebarClosed .navIcon { transform: scale(1.15); }
+
+.navLabel {
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease 0.08s, transform 0.2s ease 0.08s;
+}
+.sidebarClosed .navLabel {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+/* ── Sidebar developer credit ──
+   Absolutely positioned at the bottom of the sidebar.
+   Works because sidebar is already positioned (sticky/fixed).
+   padding-bottom on .nav keeps nav items from hiding behind it. */
+.sidebarCredit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #080e1a;
+  padding: 14px 16px;
+  border-top: 1px solid #1a2740;
+  overflow: hidden;
+}
+
+.sidebarCreditLabel {
+  display: block;
+  font-size: 0.58rem;
+  color: #4a6a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+.sidebarCreditName {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #00d4ff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+.sidebarClosed .sidebarCreditLabel,
+.sidebarClosed .sidebarCreditName {
+  opacity: 0;
+}
+
+/* ── Main area ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(180deg, #0a1628 0%, #060b14 100%);
+  border-bottom: 1px solid #1a2740;
+  padding: 24px 32px;
+}
+
+.headerInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.headerText { flex: 1; }
+
+.title {
+  font-size: clamp(1.4rem, 3.5vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: #8ab8d8;
+  margin-top: 5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Header credit — plain text under subtitle, no box */
+.headerCreditInline {
+  margin-top: 5px;
+  font-size: 0;
+}
+
+.headerCreditLabel {
+  font-size: 0.68rem;
+  color: #5a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 500;
+}
+
+.headerCreditName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #00d4ff;
+  letter-spacing: 0.01em;
+}
+
+/* Legacy box-style (not used) */
+.headerCredit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(0, 180, 255, 0.07);
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 18px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.creditLabel {
+  font-size: 0.65rem;
+  color: #5a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.creditName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #00d4ff;
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Orbit animation ── */
+.orbit {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.orbitRing {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid #1a2740;
+  position: absolute;
+}
+
+.orbitDot {
+  width: 9px;
+  height: 9px;
+  background: #00d4ff;
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px #00d4ff;
+  animation: orbit 3s linear infinite;
+  transform-origin: 4.5px 30px;
+}
+
+@keyframes orbit {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to   { transform: translateX(-50%) rotate(360deg); }
+}
+
+/* ── Critical banner ── */
+.criticalBanner {
+  background: rgba(255,82,82,0.08);
+  border-bottom: 1px solid rgba(255,82,82,0.25);
+  color: #ff8a80;
+  padding: 11px 24px;
+  text-align: center;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.criticalBannerIcon { font-size: 1rem; }
+
+/* ── Page content wrapper ── */
+.content {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 24px;
+}
+
+/* ── Footer ── */
+.footer {
+  border-top: 1px solid #1a2740;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footerLeft {
+  font-size: 0.68rem;
+  color: #2a4a6a;
+  letter-spacing: 0.03em;
+}
+
+.footerCredit {
+  font-size: 0.72rem;
+  color: #4a7aaa;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.footerCreditName {
+  color: #00d4ff;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE — off-canvas overlay drawer
+   ═══════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .shell { flex-direction: column; }
+
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #080e1a;
+    border-bottom: 1px solid #1a2740;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 40;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78vw;
+    max-width: 300px;
+    height: 100vh;
+    z-index: 50;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebarOpen  { transform: translateX(0); }
+  .sidebarClosed {
+    width: 78vw;
+    max-width: 300px;
+    transform: translateX(-100%);
+  }
+
+  .sidebarClosed .logoText,
+  .sidebarClosed .navLabel,
+  .sidebarClosed .sidebarCreditLabel,
+  .sidebarClosed .sidebarCreditName { opacity: 1; transform: translateX(0); }
+  .sidebarClosed .navIcon { transform: none; }
+
+  .header { padding: 18px 16px; }
+  .content { padding: 24px 14px; }
+}
