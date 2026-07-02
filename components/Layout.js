@@ -10,8 +10,8 @@ import styles from "../styles/Layout.module.css";
 // showSidebar  →  pinned to the bottom of the left navigation
 // showFooter   →  right side of the page footer
 const DEV_CREDIT = {
-  show:        false,
-  showHeader:  true,
+  show:        true,
+  showHeader:  false,
   showSidebar: true,
   showFooter:  true,
   label: "Initiated & Developed by ",
