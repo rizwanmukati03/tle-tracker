@@ -118,20 +118,21 @@ function ConjunctionRow({ c }) {
   );
 }
 
-function SatelliteCollisionCard({ sat }) {
+function SatelliteCollisionCard({ sat, customName }) {
   const reportUrl = `https://celestrak.org/SOCRATES/table-socrates.php?CATNR=${sat.norad}&ORDER=MINRANGE&MAX=10`;
   const conjunctions = sat.conjunctions || [];
   const sorted = [...conjunctions].sort((a, b) => a.minRangeKm - b.minRangeKm);
   const top = sorted.slice(0, 5);
   const extraCount = sorted.length - top.length;
   const label = SAT_LABELS[sat.norad] || sat.name;
+  const displayName = customName || sat.name;
 
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.satLabel}>
           <span className={styles.badge}>{label}</span>
-          <span className={styles.satName}>{sat.name}</span>
+          <span className={styles.satName}>{displayName}</span>
         </div>
         <span className={styles.noradTag}>NORAD {sat.norad}</span>
       </div>
@@ -163,6 +164,15 @@ export default function CollisionsPage() {
   const [collisionData, setCollisionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [customNames, setCustomNames] = useState({});
+
+  // Read custom names set on the Dashboard
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("leo_satellite_names");
+      if (stored) setCustomNames(JSON.parse(stored));
+    } catch {}
+  }, []);
 
   const fetchCollisions = useCallback(async () => {
     setLoading(true);
@@ -212,7 +222,7 @@ export default function CollisionsPage() {
       {!loading && collisionData?.satellites && (
         <div className={styles.grid}>
           {collisionData.satellites.map(sat => (
-            <SatelliteCollisionCard key={sat.norad} sat={sat} />
+            <SatelliteCollisionCard key={sat.norad} sat={sat} customName={customNames[sat.norad]} />
           ))}
         </div>
       )}
