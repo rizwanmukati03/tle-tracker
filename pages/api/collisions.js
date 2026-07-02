@@ -17,7 +17,7 @@ const SATELLITES = [
 ];
 
 const CACHE_TTL_SECONDS = 6 * 60 * 60;
-const FORCE_COOLDOWN_SECONDS = 10 * 60;
+const FORCE_COOLDOWN_SECONDS = 60 * 60;
 
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
 const NORAD_PATTERN = /^\d{4,6}$/;
