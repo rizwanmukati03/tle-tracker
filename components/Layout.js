@@ -14,7 +14,7 @@ const DEV_CREDIT = {
   showHeader:  true,
   showSidebar: true,
   showFooter:  true,
-  label: "Initiated & Developed by",
+  label: "Initiated & Developed by ",
   name:  "Rizwan Mukati",
 };
 // ─────────────────────────────────────────────────────────────────────────────
