@@ -83,7 +83,7 @@ async function fetchConjunctions(norad) {
   const url = `https://celestrak.org/SOCRATES/table-socrates.php?CATNR=${norad}&ORDER=MINRANGE&MAX=10`;
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+      "User-Agent": "LEO-Asset-Tracker/1.0 (non-commercial internal orbital monitoring)",
       Accept: "text/html,*/*",
     },
     signal: AbortSignal.timeout(10000),
