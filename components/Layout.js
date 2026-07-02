@@ -4,24 +4,32 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Layout.module.css";
 
+// ── Developer credit ────────────────────────────────────────────────────────
+// To hide everywhere instantly: flip show to false and commit.
+// To restore: flip back to true. Both sidebar and footer update automatically.
+const DEV_CREDIT = {
+  show: true,
+  label: "Initiated & Developed by",
+  name:  "Rizwan Mukati",
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: "📡" },
-  { href: "/collisions", label: "Collision risk", icon: "⚠" },
-  { href: "/archive", label: "TLE archive", icon: "📜" },
+  { href: "/",           label: "Dashboard",     icon: "📡" },
+  { href: "/collisions", label: "Collision risk", icon: "⚠"  },
+  { href: "/archive",    label: "TLE archive",   icon: "📜" },
 ];
 
 export default function Layout({ children }) {
-  // true = sidebar expanded (desktop: full width; mobile: drawer open)
   const [open, setOpen] = useState(true);
   const router = useRouter();
 
-  // Default to closed on mobile after mount, so the drawer doesn't
-  // cover the screen on first load. Desktop keeps its expanded default.
+  // Default closed on mobile so drawer doesn't cover screen on first load.
   useEffect(() => {
     if (window.innerWidth < 700) setOpen(false);
   }, []);
 
-  // Close the mobile drawer automatically after navigating to a new page.
+  // Auto-close drawer after navigation on mobile.
   useEffect(() => {
     if (window.innerWidth < 700) setOpen(false);
   }, [router.pathname]);
@@ -30,7 +38,8 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.shell}>
-      {/* Mobile-only top bar — always visible so the drawer can always be reopened */}
+
+      {/* Mobile-only sticky top bar */}
       <div className={styles.mobileTopBar}>
         <button className={styles.mobileHamburgerBtn} onClick={toggle} aria-label="Toggle menu">
           ☰
@@ -38,7 +47,7 @@ export default function Layout({ children }) {
         <span className={styles.mobileLogoText}>LEO Tracker</span>
       </div>
 
-      {/* Backdrop, mobile only, closes drawer on tap */}
+      {/* Mobile backdrop — tap to close drawer */}
       {open && <div className={styles.backdrop} onClick={() => setOpen(false)} aria-hidden="true" />}
 
       <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : styles.sidebarClosed}`}>
@@ -66,6 +75,14 @@ export default function Layout({ children }) {
             </Link>
           ))}
         </nav>
+
+        {/* Sidebar credit — pinned to sidebar bottom, always in view */}
+        {DEV_CREDIT.show && (
+          <div className={styles.sidebarCredit}>
+            <span className={styles.sidebarCreditLabel}>{DEV_CREDIT.label}</span>
+            <span className={styles.sidebarCreditName}>{DEV_CREDIT.name}</span>
+          </div>
+        )}
       </aside>
 
       <div className={styles.main}>
@@ -85,7 +102,14 @@ export default function Layout({ children }) {
         <main className={styles.content}>{children}</main>
 
         <footer className={styles.footer}>
-          Auto-refreshes every hour &middot; Data sourced from Celestrak &middot; n2yo &middot; SOCRATES &middot; TLE format per USSPACECOM
+          <span className={styles.footerLeft}>
+            Auto-refreshes every hour &middot; Celestrak &middot; n2yo &middot; SOCRATES &middot; TLE format per USSPACECOM
+          </span>
+          {DEV_CREDIT.show && (
+            <span className={styles.footerCredit}>
+              {DEV_CREDIT.label} <strong className={styles.footerCreditName}>{DEV_CREDIT.name}</strong>
+            </span>
+          )}
         </footer>
       </div>
     </div>
