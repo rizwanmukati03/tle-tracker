@@ -11,7 +11,7 @@ import styles from "../styles/Layout.module.css";
 // showFooter   →  right side of the page footer
 const DEV_CREDIT = {
   show:        true,
-  showHeader:  false,
+  showHeader:  true,
   showSidebar: true,
   showFooter:  true,
   label: "Initiated & Developed by ",
