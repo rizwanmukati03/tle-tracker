@@ -46,7 +46,7 @@ async function fetchFromCelestrak(norad) {
   const url = `https://celestrak.org/NORAD/elements/gp.php?CATNR=${norad}&FORMAT=TLE`;
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+      "User-Agent": "LEO-Asset-Tracker/1.0 (non-commercial internal orbital monitoring)",
       Accept: "text/plain,*/*",
       "Accept-Language": "en-US,en;q=0.9",
       Referer: "https://celestrak.org/",
@@ -64,7 +64,7 @@ async function fetchFromN2YO(norad) {
   const url = `https://www.n2yo.com/satellite/?s=${norad}`;
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+      "User-Agent": "LEO-Asset-Tracker/1.0 (non-commercial internal orbital monitoring)",
       Accept: "text/html,*/*",
       Referer: "https://www.n2yo.com/",
     },
