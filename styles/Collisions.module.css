@@ -1,7 +1,8 @@
 .pageTitle {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #fff;
   margin-bottom: 6px;
+  font-weight: 700;
 }
 
 .criticalBanner {
@@ -11,19 +12,21 @@
   color: #ff8a80;
   padding: 12px 18px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
+  font-weight: 600;
 }
 .criticalBannerIcon { font-size: 1rem; }
 
 .pageSubtitle {
-  font-size: 0.8rem;
-  color: #7ab0d4;
+  font-size: 0.85rem;
+  color: #8ab8d8;
   margin-bottom: 24px;
+  font-weight: 500;
 }
 
 .globalError {
@@ -32,14 +35,14 @@
   color: #ff8a80;
   padding: 14px 18px;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.88rem;
   margin-bottom: 24px;
   text-align: center;
 }
 
 .loadingState {
-  color: #4a6a8a;
-  font-size: 0.9rem;
+  color: #7ab0d4;
+  font-size: 0.95rem;
   text-align: center;
   padding: 60px 20px;
 }
@@ -75,7 +78,7 @@
 .badge {
   background: linear-gradient(135deg, #0055cc, #00aaff);
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 5px;
@@ -90,30 +93,33 @@
 }
 
 .noradTag {
-  font-size: 0.7rem;
-  color: #4a6a8a;
+  font-size: 0.72rem;
+  color: #8ab8d8;
   font-family: "JetBrains Mono", monospace;
   background: #080e1a;
-  padding: 3px 9px;
+  padding: 3px 10px;
   border-radius: 5px;
-  border: 1px solid #1a2740;
+  border: 1px solid #2a4060;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .collisionError, .collisionNone {
-  font-size: 0.78rem;
-  color: #4a6a8a;
+  font-size: 0.82rem;
+  color: #7ab0d4;
   padding: 8px 0;
 }
 
 .collisionCount {
-  font-size: 0.72rem;
-  color: #7ab0d4;
+  font-size: 0.78rem;
+  color: #8ab8d8;
   margin-bottom: 14px;
+  font-weight: 600;
 }
 
 .moreNote {
-  font-size: 0.7rem;
-  color: #4a6a8a;
+  font-size: 0.74rem;
+  color: #7ab0d4;
   margin-bottom: 8px;
 }
 
@@ -127,12 +133,12 @@
   border-left: 4px solid #2a4060;
 }
 .conj_critical { background: rgba(255,82,82,0.07); border-color: rgba(255,82,82,0.25); border-left-color: #ff5252; }
-.conj_warning { background: rgba(255,179,0,0.07); border-color: rgba(255,179,0,0.25); border-left-color: #ffb300; }
-.conj_watch { border-left-color: #7ab0d4; }
+.conj_warning  { background: rgba(255,179,0,0.07); border-color: rgba(255,179,0,0.25); border-left-color: #ffb300; }
+.conj_watch    { border-left-color: #7ab0d4; }
 
 .riskCritical, .riskWarning, .riskWatch {
   display: inline-block;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 4px;
@@ -140,8 +146,8 @@
   margin-bottom: 14px;
 }
 .riskCritical { background: #501313; color: #F7C1C1; }
-.riskWarning { background: #412402; color: #FAC775; }
-.riskWatch { background: rgba(122,176,212,0.15); color: #7ab0d4; }
+.riskWarning  { background: #412402; color: #FAC775; }
+.riskWatch    { background: rgba(122,176,212,0.15); color: #7ab0d4; }
 
 .conjunctionFields {
   display: flex;
@@ -150,25 +156,26 @@
 }
 
 .fieldLabel {
-  font-size: 0.62rem;
-  color: #7ab0d4;
+  font-size: 0.68rem;
+  color: #8ab8d8;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 3px;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
 .fieldValueLg {
   font-family: "JetBrains Mono", monospace;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 700;
 }
 .distCritical { color: #ff8a80; }
-.distWarning { color: #ffb300; }
-.distWatch { color: #7ab0d4; }
+.distWarning  { color: #ffb300; }
+.distWatch    { color: #7ab0d4; }
 
 .fieldValueMd {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #e8f0fe;
 }
@@ -185,8 +192,8 @@
   background: #050a10;
 }
 .gaugeZoneCritical { width: 20%; background: rgba(255,82,82,0.35); }
-.gaugeZoneWarning { width: 40%; background: rgba(255,179,0,0.3); }
-.gaugeZoneWatch { width: 40%; background: rgba(122,176,212,0.25); }
+.gaugeZoneWarning  { width: 40%; background: rgba(255,179,0,0.3); }
+.gaugeZoneWatch    { width: 40%; background: rgba(122,176,212,0.25); }
 
 .gaugeMarker {
   position: absolute;
@@ -197,35 +204,38 @@
   transform: translateX(-50%);
 }
 .gaugeMarker_critical { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
-.gaugeMarker_warning { background: #ffb300; box-shadow: 0 0 6px #ffb300; }
-.gaugeMarker_watch { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
+.gaugeMarker_warning  { background: #ffb300; box-shadow: 0 0 6px #ffb300; }
+.gaugeMarker_watch    { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
 
 .gaugeScale {
   position: relative;
-  height: 14px;
+  height: 16px;
   margin-top: 4px;
 }
 .gaugeTick {
   position: absolute;
   transform: translateX(-50%);
-  font-size: 0.58rem;
-  color: #2a4a6a;
+  font-size: 0.62rem;
+  color: #5a7a9a;
   font-family: "JetBrains Mono", monospace;
   white-space: nowrap;
+  font-weight: 600;
 }
 .gaugeTickFirst {
   position: absolute;
   left: 0;
-  font-size: 0.58rem;
-  color: #2a4a6a;
+  font-size: 0.62rem;
+  color: #5a7a9a;
   font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
 }
 .gaugeTickLast {
   position: absolute;
   right: 0;
-  font-size: 0.58rem;
-  color: #2a4a6a;
+  font-size: 0.62rem;
+  color: #5a7a9a;
   font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
 }
 
 /* ── Probability gauge ── */
@@ -242,14 +252,14 @@
 
 .probValue {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
 }
-.probValue_low { color: #7ab0d4; }
+.probValue_low      { color: #7ab0d4; }
 .probValue_moderate { color: #00e676; }
 .probValue_elevated { color: #ffb300; }
-.probValue_high { color: #ff5252; }
-.probNoData { font-size: 0.7rem; color: #4a6a8a; }
+.probValue_high     { color: #ff5252; }
+.probNoData { font-size: 0.74rem; color: #7ab0d4; }
 
 .probGaugeTrack {
   position: relative;
@@ -259,10 +269,10 @@
   display: flex;
   background: #050a10;
 }
-.probZoneLow { width: 25%; background: rgba(122,176,212,0.3); }
+.probZoneLow      { width: 25%; background: rgba(122,176,212,0.3); }
 .probZoneModerate { width: 25%; background: rgba(0,230,118,0.25); }
 .probZoneElevated { width: 25%; background: rgba(255,179,0,0.3); }
-.probZoneHigh { width: 25%; background: rgba(255,82,82,0.35); }
+.probZoneHigh     { width: 25%; background: rgba(255,82,82,0.35); }
 
 .probMarker {
   position: absolute;
@@ -272,43 +282,46 @@
   border-radius: 2px;
   transform: translateX(-50%);
 }
-.probMarker_low { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
+.probMarker_low      { background: #7ab0d4; box-shadow: 0 0 6px #7ab0d4; }
 .probMarker_moderate { background: #00e676; box-shadow: 0 0 6px #00e676; }
 .probMarker_elevated { background: #ffb300; box-shadow: 0 0 6px #ffb300; }
-.probMarker_high { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
+.probMarker_high     { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
 
 .probCaveat {
-  font-size: 0.6rem;
-  color: #4a6a8a;
+  font-size: 0.64rem;
+  color: #5a7a9a;
   margin-top: 4px;
   font-style: italic;
 }
 
 .conjunctionTarget {
-  font-size: 0.85rem;
-  color: #e8f0fe;
+  font-size: 0.88rem;
+  color: #c8ddf0;
   border-top: 1px solid #1a2740;
   padding-top: 10px;
   margin-top: 12px;
   margin-bottom: 8px;
+  font-weight: 500;
 }
 
-.statusTag { color: #5a7a9a; }
+.statusTag { color: #7ab0d4; }
 
 .conjunctionMeta {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: 0.74rem;
-  color: #7b8fa8;
+  font-size: 0.78rem;
+  color: #8ab8d8;
+  font-weight: 500;
 }
 
 .viewReportLink {
   display: inline-flex;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   color: #00d4ff;
   text-decoration: none;
   margin-top: 4px;
+  font-weight: 600;
 }
 .viewReportLink:hover { text-decoration: underline; }
 
