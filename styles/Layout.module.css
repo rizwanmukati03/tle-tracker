@@ -282,10 +282,63 @@
 .footer {
   border-top: 1px solid #1a2740;
   padding: 14px 24px;
-  text-align: center;
-  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footerLeft {
+  font-size: 0.68rem;
   color: #2a4a6a;
   letter-spacing: 0.03em;
+}
+
+.footerCredit {
+  font-size: 0.72rem;
+  color: #4a7aaa;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.footerCreditName {
+  color: #00d4ff;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* ── Sidebar developer credit ── */
+.sidebarCredit {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-top: 1px solid #1a2740;
+  overflow: hidden;
+}
+
+.sidebarCreditLabel {
+  display: block;
+  font-size: 0.58rem;
+  color: #4a6a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+
+.sidebarCreditName {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #00d4ff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.15s;
 }
 
 /* ════════════════════════════════════════
@@ -353,4 +406,10 @@
   .header { padding: 18px 16px; }
   .headerCredit { align-items: flex-start; }
   .content { padding: 24px 14px; }
+}
+
+/* Collapsed desktop sidebar — hide credit text, keep spacing */
+.sidebarClosed .sidebarCreditLabel,
+.sidebarClosed .sidebarCreditName {
+  opacity: 0;
 }
