@@ -3,20 +3,22 @@ import { Redis } from "@upstash/redis";
 
 const redis = Redis.fromEnv();
 
+// Keep dev (Preview) and production data completely separate —
+// VERCEL_ENV is set automatically by Vercel ("production", "preview", or "development").
 const ENV = process.env.VERCEL_ENV === "production" ? "prod" : "dev";
 
 const SATELLITES = [
-  { name: "PRSC-EO1",  norad: 62726 },
-  { name: "PRSC-EO2",  norad: 67748 },
-  { name: "PRSC-EO3",  norad: 68835 },
-  { name: "PRSC-S1",   norad: 65055 },
-  { name: "HS",        norad: 66054 },
-  { name: "PRSS-1",    norad: 43530 },
+  { name: "PRSC-EO1", norad: 62726 },
+  { name: "PRSC-EO2", norad: 67748 },
+  { name: "PRSC-EO3", norad: 68835 },
+  { name: "PRSC-S1",  norad: 65055 },
+  { name: "HS",       norad: 66054 },
+  { name: "PRSS-1",   norad: 43530 },
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const CACHE_TTL_SECONDS    = 4 * 60 * 60;  // 2 hours — CelesTrak updates LEO TLEs every 1-4 hours
-const FORCE_COOLDOWN_SECONDS = 30 * 60;    // 30 min cooldown on manual refresh
+const CACHE_TTL_SECONDS = 4 * 60 * 60;
+const FORCE_COOLDOWN_SECONDS = 30 * 60;
 
 function parseCached(raw) {
   if (!raw) return null;
@@ -28,13 +30,16 @@ function parseEpochMs(line1) {
     const epochStr = line1.substring(18, 32).trim();
     if (!epochStr) return null;
     const year2 = parseInt(epochStr.substring(0, 2), 10);
-    const day   = parseFloat(epochStr.substring(2));
-    const year  = year2 >= 57 ? 1900 + year2 : 2000 + year2;
-    const date  = new Date(Date.UTC(year, 0, 1));
+    const day = parseFloat(epochStr.substring(2));
+    const year = year2 >= 57 ? 1900 + year2 : 2000 + year2;
+    const date = new Date(Date.UTC(year, 0, 1));
     date.setUTCDate(date.getUTCDate() + Math.floor(day) - 1);
-    date.setUTCMilliseconds((day - Math.floor(day)) * 86400000);
+    const frac = day - Math.floor(day);
+    date.setUTCMilliseconds(frac * 86400000);
     return date.getTime();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function fetchFromCelestrak(norad) {
@@ -42,13 +47,14 @@ async function fetchFromCelestrak(norad) {
   const res = await fetch(url, {
     headers: {
       "User-Agent": "LEO-Asset-Tracker/1.0 (non-commercial internal orbital monitoring)",
-      "Accept":     "text/plain,*/*",
+      Accept: "text/plain,*/*",
       "Accept-Language": "en-US,en;q=0.9",
+      Referer: "https://celestrak.org/",
     },
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`Celestrak HTTP ${res.status}`);
-  const text  = await res.text();
+  const text = await res.text();
   const lines = text.trim().split("\n").map(l => l.trim()).filter(Boolean);
   if (lines.length < 3) throw new Error("Unexpected Celestrak response");
   return { name: lines[0], line1: lines[1], line2: lines[2] };
@@ -59,12 +65,13 @@ async function fetchFromN2YO(norad) {
   const res = await fetch(url, {
     headers: {
       "User-Agent": "LEO-Asset-Tracker/1.0 (non-commercial internal orbital monitoring)",
-      "Accept":     "text/html,*/*",
+      Accept: "text/html,*/*",
+      Referer: "https://www.n2yo.com/",
     },
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`n2yo HTTP ${res.status}`);
-  const html    = await res.text();
+  const html = await res.text();
   const matches = [...html.matchAll(/<(?:pre|code)[^>]*>([\s\S]*?)<\/(?:pre|code)>/gi)];
   for (const match of matches) {
     const lines = match[1]
@@ -77,13 +84,19 @@ async function fetchFromN2YO(norad) {
   throw new Error("TLE not found in n2yo page");
 }
 
+// Archive a TLE only if its exact content has never been archived before.
+// Uses a dedicated Set as a direct membership check ("have we ever seen this
+// exact TLE content?") rather than comparing only against the latest entry —
+// the latest-only approach previously allowed duplicates to slip through.
 async function maybeArchive(norad, payload) {
   const archiveKey = `${ENV}_tle_archive_${norad}`;
-  const seenKey    = `${ENV}_tle_archive_seen_${norad}`;
+  const seenKey = `${ENV}_tle_archive_seen_${norad}`;
   const fingerprint = `${payload.line1}|${payload.line2}`;
 
   const alreadySeen = await redis.sismember(seenKey, fingerprint);
-  if (alreadySeen) return false;
+  if (alreadySeen) {
+    return false;
+  }
 
   const score = payload.epochMs != null ? payload.epochMs : payload.fetchedAt;
   await redis.zadd(archiveKey, { score, member: JSON.stringify(payload) });
@@ -104,11 +117,11 @@ async function fetchTLE(norad, force = false) {
 
   let data, source;
   try {
-    data   = await fetchFromCelestrak(norad);
+    data = await fetchFromCelestrak(norad);
     source = "Celestrak";
   } catch (e1) {
     try {
-      data   = await fetchFromN2YO(norad);
+      data = await fetchFromN2YO(norad);
       source = "n2yo";
     } catch (e2) {
       const cached = parseCached(await redis.get(cacheKey));
@@ -121,8 +134,8 @@ async function fetchTLE(norad, force = false) {
   }
 
   const fetchedAt = Date.now();
-  const epochMs   = parseEpochMs(data.line1);
-  const payload   = { ...data, source, fetchedAt, epochMs };
+  const epochMs = parseEpochMs(data.line1);
+  const payload = { ...data, source, fetchedAt, epochMs };
   await redis.set(cacheKey, JSON.stringify(payload), { ex: CACHE_TTL_SECONDS });
   const changed = await maybeArchive(norad, payload);
   return { ...payload, fromCache: false, tleChanged: changed, ttlSeconds: CACHE_TTL_SECONDS };
@@ -132,17 +145,17 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const force = req.query.force === "true";
-  const now   = Date.now();
+  const now = Date.now();
 
   if (force) {
-    const cooldownKey  = `${ENV}_tle_last_force_fetch`;
+    const cooldownKey = `${ENV}_tle_last_force_fetch`;
     const lastForceRaw = await redis.get(cooldownKey);
-    const lastForce    = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
+    const lastForce = lastForceRaw ? parseInt(lastForceRaw, 10) : 0;
 
     if (lastForce && now - lastForce < FORCE_COOLDOWN_SECONDS * 1000) {
       const waitMinutes = Math.ceil((FORCE_COOLDOWN_SECONDS * 1000 - (now - lastForce)) / 60000);
       return res.status(429).json({
-        error: `TLEs were just refreshed. Next manual refresh available in ${waitMinutes} minute(s). Data auto-updates every 2 hours.`,
+        error: `TLEs were just refreshed. Next manual refresh available in ${waitMinutes} minute(s). Data auto-updates every 4 hours.`,
         cooldown: true,
         waitMinutes,
       });
