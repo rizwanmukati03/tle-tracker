@@ -4,19 +4,20 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import { SAT_LABELS } from "../lib/satellites";
 
-const AUTO_REFRESH_MS = 4 * 60 * 60 * 1000; // 2 hours — matches server cache TTL
+const AUTO_REFRESH_MS = 4 * 60 * 60 * 1000;
 
 function formatEpoch(tleLines) {
   try {
-    const line1    = tleLines?.line1 || "";
+    const line1 = tleLines?.line1 || "";
     const epochStr = line1.substring(18, 32).trim();
     if (!epochStr) return null;
     const year2 = parseInt(epochStr.substring(0, 2));
-    const day   = parseFloat(epochStr.substring(2));
-    const year  = year2 >= 57 ? 1900 + year2 : 2000 + year2;
-    const date  = new Date(Date.UTC(year, 0, 1));
+    const day = parseFloat(epochStr.substring(2));
+    const year = year2 >= 57 ? 1900 + year2 : 2000 + year2;
+    const date = new Date(Date.UTC(year, 0, 1));
     date.setUTCDate(date.getUTCDate() + Math.floor(day) - 1);
-    date.setUTCMilliseconds((day - Math.floor(day)) * 86400000);
+    const frac = day - Math.floor(day);
+    date.setUTCMilliseconds(frac * 86400000);
     return date.toUTCString().replace("GMT", "UTC");
   } catch { return null; }
 }
@@ -31,15 +32,15 @@ function formatCountdown(seconds) {
 
 function triggerDownload(filename, content) {
   const blob = new Blob([content], { type: "text/plain" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// ── Dropdown download button ──────────────────────────────────────────────────
+// ── Reusable dropdown download button ──
 function DownloadMenu({ onSelect, variant = "solid" }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -83,16 +84,17 @@ function DownloadMenu({ onSelect, variant = "solid" }) {
   );
 }
 
-// ── Satellite card ────────────────────────────────────────────────────────────
+// ── Satellite card ──
 function SatelliteCard({ sat, customName, onRename }) {
-  const [copied,  setCopied]  = useState(false);
+  const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [editVal, setEditVal] = useState("");
+  const [editValue, setEditValue] = useState("");
 
   const displayName = customName || sat.name || `NORAD-${sat.norad}`;
-  const label       = SAT_LABELS[sat.norad] || sat.name;
-  const epoch       = formatEpoch(sat);
+  const label = SAT_LABELS[sat.norad] || sat.name;
+  const epoch = formatEpoch(sat);
 
+  // Copy: no satellite name
   const handleCopy = async () => {
     if (!sat.line1 || !sat.line2) return;
     await navigator.clipboard.writeText(`${sat.line1}\n${sat.line2}`);
@@ -100,17 +102,23 @@ function SatelliteCard({ sat, customName, onRename }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Download: with satellite name
   const handleDownload = (format) => {
     if (!sat.line1 || !sat.line2) return;
     const content = `${displayName}\n${sat.line1}\n${sat.line2}`;
-    const dl = (ext) => triggerDownload(`${sat.norad}.${ext}`, content);
-    if (format === "tle")        dl("tle");
-    else if (format === "txt")   dl("txt");
+    const base = sat.norad;
+    const dl = (ext) => triggerDownload(`${base}.${ext}`, content);
+    if (format === "tle") dl("tle");
+    else if (format === "txt") dl("txt");
     else { dl("tle"); setTimeout(() => dl("txt"), 300); }
   };
 
-  const startEdit  = () => { setEditVal(displayName); setEditing(true); };
-  const saveEdit   = () => { onRename(sat.norad, editVal.trim() || null); setEditing(false); };
+  const startEdit = () => { setEditValue(displayName); setEditing(true); };
+  const saveEdit = () => {
+    const trimmed = editValue.trim();
+    onRename(sat.norad, trimmed || null);
+    setEditing(false);
+  };
   const cancelEdit = () => setEditing(false);
 
   return (
@@ -122,13 +130,13 @@ function SatelliteCard({ sat, customName, onRename }) {
             <div className={styles.nameEditRow}>
               <input
                 className={styles.nameInput}
-                value={editVal}
-                onChange={e => setEditVal(e.target.value)}
+                value={editValue}
+                onChange={e => setEditValue(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") cancelEdit(); }}
                 autoFocus
                 maxLength={40}
               />
-              <button className={styles.nameEditSave}   onClick={saveEdit}   title="Save">✓</button>
+              <button className={styles.nameEditSave} onClick={saveEdit} title="Save">✓</button>
               <button className={styles.nameEditCancel} onClick={cancelEdit} title="Cancel">✕</button>
             </div>
           ) : (
@@ -164,7 +172,7 @@ function SatelliteCard({ sat, customName, onRename }) {
             <span className={styles.sourceTag}>via {sat.source}</span>
             {sat.fromCache && !sat.stale && <span className={styles.cacheTag}>cached</span>}
             {sat.stale && <span className={styles.staleTag}>stale — fetch failed</span>}
-            {!sat.fromCache && sat.tleChanged === true  && <span className={styles.updatedTag}>🔄 Updated</span>}
+            {!sat.fromCache && sat.tleChanged === true && <span className={styles.updatedTag}>🔄 Updated</span>}
             {!sat.fromCache && sat.tleChanged === false && <span className={styles.noChangeTag}>No change</span>}
           </div>
 
@@ -180,13 +188,13 @@ function SatelliteCard({ sat, customName, onRename }) {
   );
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+// ── Page ──
 export default function Home() {
-  const [data,        setData]        = useState(null);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState(null);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [lastFetched, setLastFetched] = useState(null);
-  const [countdown,   setCountdown]   = useState(AUTO_REFRESH_MS / 1000);
+  const [countdown, setCountdown] = useState(AUTO_REFRESH_MS / 1000);
   const [cooldownMsg, setCooldownMsg] = useState(null);
   const [customNames, setCustomNames] = useState({});
 
@@ -208,8 +216,9 @@ export default function Home() {
     });
   };
 
+  // Refs so timer callbacks always have fresh function references
   const countdownRef = useRef(AUTO_REFRESH_MS / 1000);
-  const refreshRef   = useRef(null);
+  const refreshRef = useRef(null);
 
   const fetchAll = useCallback(async (force = false) => {
     setLoading(true);
@@ -219,12 +228,11 @@ export default function Home() {
       const url = force ? "/api/tle?force=true" : "/api/tle";
       const res = await fetch(url);
       const json = await res.json();
-
       if (res.status === 429) { setCooldownMsg(json.error); return; }
       if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
-
       setData(json);
       setLastFetched(new Date());
+      // Seed countdown from real Redis TTL reported by server
       const ttl = typeof json.cacheExpiresInSeconds === "number"
         ? json.cacheExpiresInSeconds
         : AUTO_REFRESH_MS / 1000;
@@ -242,12 +250,15 @@ export default function Home() {
     fetch(force ? "/api/collisions?force=true" : "/api/collisions").catch(() => {});
   }, [fetchAll]);
 
+  // Keep ref current
   useEffect(() => { refreshRef.current = refreshEverything; }, [refreshEverything]);
 
   // Initial fetch
   useEffect(() => { refreshEverything(false); }, [refreshEverything]);
 
-  // Single countdown timer that also drives the auto-refresh
+  // SINGLE countdown timer that also drives the auto-refresh.
+  // Replacing the old separate 6-hour interval which could drift and
+  // be throttled by the browser in background tabs.
   useEffect(() => {
     const tick = setInterval(() => {
       countdownRef.current = Math.max(0, countdownRef.current - 1);
@@ -258,9 +269,10 @@ export default function Home() {
       }
     }, 1000);
     return () => clearInterval(tick);
-  }, []);
+  }, []); // Empty deps — intentional; uses refs to stay current
 
-  // Visibility change — catches up after browser throttles timer in background
+  // Visibility change handler — catches up after browser throttles
+  // the timer while the tab is in the background.
   useEffect(() => {
     let hiddenAt = null;
     const onVisibility = () => {
@@ -291,8 +303,8 @@ export default function Home() {
       .map(s => `${customNames[s.norad] || s.name || `NORAD-${s.norad}`}\n${s.line1}\n${s.line2}`)
       .join("\n");
     const dl = (ext) => triggerDownload(`leo_asset_tracker.${ext}`, content);
-    if (format === "tle")       dl("tle");
-    else if (format === "txt")  dl("txt");
+    if (format === "tle") dl("tle");
+    else if (format === "txt") dl("txt");
     else { dl("tle"); setTimeout(() => dl("txt"), 300); }
   };
 
@@ -305,7 +317,6 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      {/* Stats bar */}
       <div className={styles.statsBar}>
         <div className={styles.statItem}>
           <span className={styles.statValue}>7</span>
@@ -333,11 +344,11 @@ export default function Home() {
           <span className={`${styles.statValue} ${styles.countdown}`}>
             {loading ? "Fetching…" : formatCountdown(countdown)}
           </span>
-          <span className={styles.statLabel}>Auto-Refresh In</span>
+          <span className={styles.statLabel}>Next Auto-Refresh</span>
         </div>
       </div>
 
-      {error      && <div className={styles.globalError}><strong>Error:</strong> {error}</div>}
+      {error && <div className={styles.globalError}><strong>Error:</strong> {error}</div>}
       {cooldownMsg && <div className={styles.cooldownMsg}>⏱ {cooldownMsg}</div>}
 
       {loading && (
@@ -352,18 +363,6 @@ export default function Home() {
 
       {!loading && data?.satellites && (
         <>
-          {/* Action bar — above satellite cards so it is immediately visible */}
-          <div className={styles.topBar}>
-            <button
-              className={styles.fetchBtn}
-              onClick={() => refreshEverything(true)}
-              disabled={loading}
-            >
-              ⟳ Refresh All Data
-            </button>
-            <DownloadMenu onSelect={handleDownloadAll} variant="outline" />
-          </div>
-
           <div className={styles.grid}>
             {data.satellites.map(sat => (
               <SatelliteCard
@@ -373,6 +372,17 @@ export default function Home() {
                 onRename={handleRename}
               />
             ))}
+          </div>
+
+          <div className={styles.bottomBar}>
+            <button
+              className={styles.fetchBtn}
+              onClick={() => refreshEverything(true)}
+              disabled={loading}
+            >
+              ⟳ Refresh All Data
+            </button>
+            <DownloadMenu onSelect={handleDownloadAll} variant="outline" />
           </div>
         </>
       )}
