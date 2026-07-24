@@ -15,7 +15,7 @@ const SATELLITES = [
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const CACHE_TTL_SECONDS    = 2 * 60 * 60;  // 2 hours — CelesTrak updates LEO TLEs every 1-4 hours
+const CACHE_TTL_SECONDS    = 4 * 60 * 60;  // 2 hours — CelesTrak updates LEO TLEs every 1-4 hours
 const FORCE_COOLDOWN_SECONDS = 30 * 60;    // 30 min cooldown on manual refresh
 
 function parseCached(raw) {
