@@ -173,7 +173,7 @@ export default async function handler(req, res) {
     if (lastForce && now - lastForce < FORCE_COOLDOWN_SECONDS * 1000) {
       const waitMinutes = Math.ceil((FORCE_COOLDOWN_SECONDS * 1000 - (now - lastForce)) / 60000);
       return res.status(429).json({
-        error: `Data was last refreshed recently. Next refresh available in ${waitMinutes} minute(s). The app auto-refreshes every 6 hours — manual refresh is rarely needed.`,
+        error: `Collision data was just refreshed. Next manual refresh available in ${waitMinutes} minute(s). Data auto-updates every 4 hours.`,
         cooldown: true,
         waitMinutes,
       });
