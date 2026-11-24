@@ -16,7 +16,7 @@ const SATELLITES = [
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const CACHE_TTL_SECONDS = 4 * 60 * 60;
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
 const FORCE_COOLDOWN_SECONDS = 30 * 60;
 
 const TCA_PATTERN = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/;
