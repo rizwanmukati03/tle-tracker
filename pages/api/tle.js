@@ -17,7 +17,7 @@ const SATELLITES = [
   { name: "PAKTES-1A", norad: 43529 },
 ];
 
-const CACHE_TTL_SECONDS = 4 * 60 * 60;
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
 const FORCE_COOLDOWN_SECONDS = 30 * 60;
 
 function parseCached(raw) {
