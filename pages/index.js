@@ -4,7 +4,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import { SAT_LABELS } from "../lib/satellites";
 
-const AUTO_REFRESH_MS = 4 * 60 * 60 * 1000;
+const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000;
 
 function formatEpoch(tleLines) {
   try {
