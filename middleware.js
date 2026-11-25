@@ -3,7 +3,7 @@
 // false = site runs normally
 import { NextResponse } from "next/server";
 
-const SITE_HIDDEN = true;
+const SITE_HIDDEN = false;
 
 const NOT_FOUND_PAGE = `<!doctype html>
 <html lang="en">
